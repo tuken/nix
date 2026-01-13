@@ -1,0 +1,102 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Org {
+  id: ID!
+  name: String!
+  postalCode: String!
+  address: String!
+  note: String!
+}
+
+type Role {
+  id: ID!
+  name: String!
+  description: String
+}
+
+type User {
+  id: ID!
+  org: Org!
+  parent: User
+  role: Role!
+  email: String!
+  password: String!
+  name: String!
+  firstName: String!
+  lastName: String!
+  postalCode: String!
+  address: String!
+  gender: String
+  birthday: String!
+  note: String!
+}
+
+type Field {
+  id: ID!
+  org: Org!
+  user: User!
+  fieldCode: String
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  elevation: Float
+  area: Float
+  postalCode: String!
+  address: String!
+  note: String!
+}
+
+type Query {
+  orgs: [Org!]!
+  roles: [Role!]!
+  users: [User!]!
+  fields: [Field!]!
+}
+
+input NewOrg {
+  name: String!
+  postalCode: String!
+  address: String!
+  note: String!
+}
+
+input NewUser {
+  orgID: Int!
+  parentID: Int
+  roleID: Int!
+  email: String!
+  password: String!
+  name: String!
+  firstName: String!
+  lastName: String!
+  postalCode: String!
+  address: String!
+  gender: String
+  birthday: String!
+  note: String!
+}
+
+input NewField {
+  orgID: Int!
+  userID: Int!
+  fieldCode: String
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  elevation: Float
+  area: Float
+  boundary: String!
+  postalCode: String!
+  address: String!
+  feildTypeID: Int!
+  crop: String!
+  note: String!
+}
+
+type Mutation {
+  createOrg(input: NewOrg!): Org!
+  createUser(input: NewUser!): User!
+  createField(input: NewField!): Field!
+}
