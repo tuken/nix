@@ -1,6 +1,6 @@
 module github.com/tuken/nix
 
-go 1.25.5
+go 1.24.11
 
 tool github.com/99designs/gqlgen
 
