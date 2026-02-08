@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"log"
+	"net/url"
+	"strconv"
 
 	"github.com/99designs/gqlgen/graphql"
 	"gorm.io/driver/mysql"
@@ -19,7 +21,14 @@ func DatabaseMiddleware(ctx context.Context, next graphql.OperationHandler) grap
 
 	log.Println("OperationMiddleware: called")
 
-	dsn := "root:secualpass@tcp(localhost:3306)/agrimo?charset=utf8mb4&collation=utf8mb4_bin&parseTime=True&loc=Asia%2FTokyo"
+	Host := "127.0.0.1"
+	Port := 3306
+	User := "root"
+	Password := "secualpass"
+	Database := "secual"
+	Timezone := "Asia/Tokyo"
+
+	dsn := User + ":" + url.QueryEscape(Password) + "@tcp(" + Host + ":" + strconv.Itoa(Port) + ")/" + Database + "?charset=utf8mb4&collation=utf8mb4_bin&parseTime=True&loc=" + url.QueryEscape(Timezone)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
