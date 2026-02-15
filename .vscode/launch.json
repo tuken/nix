@@ -9,7 +9,17 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/server.go"
+            "program": "${workspaceFolder}/server.go",
+            "env": {
+                "LISTEN_PORT": "8080",
+                "LOG_DIRECTORY": "/Users/ikawa.tsukasa/logs",
+                "SQL_LOG_LEVEL": "info",
+                "DB_USER": "root",
+                "DB_PASSWORD": "secualpass",
+                "DB_HOST": "localhost",
+                "DB_PORT": "3306",
+                "DB_NAME": "agrimo"
+            }
         }
     ]
 }
