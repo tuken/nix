@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -11,17 +13,55 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/tuken/nix/graph"
+	"github.com/tuken/nix/logger"
 	"github.com/tuken/nix/middleware"
 	"github.com/vektah/gqlparser/v2/ast"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	gormlog "gorm.io/gorm/logger"
 )
 
-const defaultPort = "8080"
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+
+	logDirectory := os.Getenv("LOG_DIRECTORY")
+	if logDirectory == "" {
+		logDirectory = "./"
 	}
+
+	listenPort := os.Getenv("LISTEN_PORT")
+	if listenPort == "" {
+		listenPort = "8080"
+	}
+
+	logLevel := gormlog.Error
+
+	sqlLogLevel := os.Getenv("SQL_LOG_LEVEL")
+	switch sqlLogLevel {
+
+	case "warn":
+		logLevel = gormlog.Warn
+
+	case "info":
+		logLevel = gormlog.Info
+	}
+
+	mainLog := logger.NewLogger(logDirectory + "/nix.log")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&collation=utf8mb4_bin&parseTime=True&loc=Asia%%2FTokyo",
+		os.Getenv("DB_USER"),
+		url.QueryEscape(os.Getenv("DB_PASSWORD")),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
+
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: mainLog})
+	if err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+
+	// rid := ulid.Make().String()
+	// logger := mainLog.With(zap.String("rid", rid))
+	db.Logger = mainLog.LogMode(logLevel)
 
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
@@ -36,11 +76,12 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	srv.AroundOperations(middleware.DatabaseMiddleware)
+	queryLogger := &middleware.QueryLogger{DB: db, Log: mainLog}
+	srv.AroundOperations(queryLogger.Middleware)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", listenPort)
+	log.Fatal(http.ListenAndServe(":"+listenPort, nil))
 }
