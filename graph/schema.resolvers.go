@@ -16,7 +16,7 @@ import (
 
 // CreateOrg is the resolver for the createOrg field.
 func (r *mutationResolver) CreateOrg(ctx context.Context, input model.NewOrg) (*model.Org, error) {
-	db := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	newOrg := &model.Org{
 		Name:       input.Name,
@@ -25,7 +25,7 @@ func (r *mutationResolver) CreateOrg(ctx context.Context, input model.NewOrg) (*
 		Note:       input.Note,
 	}
 
-	if err := db.Create(newOrg).Error; err != nil {
+	if err := d.Create(newOrg).Error; err != nil {
 		return nil, err
 	}
 
@@ -34,7 +34,7 @@ func (r *mutationResolver) CreateOrg(ctx context.Context, input model.NewOrg) (*
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	d := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	newUser := &db.User{
 		OrgID:      uint(input.OrgID),
@@ -69,7 +69,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 // CreateField is the resolver for the createField field.
 func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField) (*model.Field, error) {
-	d := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	newField := &db.Field{
 		OrgID:       uint(input.OrgID),
@@ -108,10 +108,10 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField
 
 // Orgs is the resolver for the orgs field.
 func (r *queryResolver) Orgs(ctx context.Context) ([]*model.Org, error) {
-	db := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	var orgs []*model.Org
-	if err := db.Find(&orgs).Error; err != nil {
+	if err := d.Find(&orgs).Error; err != nil {
 		return nil, err
 	}
 
@@ -120,10 +120,10 @@ func (r *queryResolver) Orgs(ctx context.Context) ([]*model.Org, error) {
 
 // Roles is the resolver for the roles field.
 func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
-	db := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	var roles []*model.Role
-	if err := db.Find(&roles).Error; err != nil {
+	if err := d.Find(&roles).Error; err != nil {
 		return nil, err
 	}
 
@@ -132,7 +132,7 @@ func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	d := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	dbUser := []db.User{}
 	if err := d.Preload("Org").Preload("Parent").Preload("Role").Find(&dbUser).Error; err != nil {
@@ -147,10 +147,10 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // Fields is the resolver for the fields field.
 func (r *queryResolver) Fields(ctx context.Context) ([]*model.Field, error) {
-	db := middleware.GetDatabase(ctx)
+	d := middleware.MustDB(ctx)
 
 	var fields []*model.Field
-	if err := db.Find(&fields).Error; err != nil {
+	if err := d.Find(&fields).Error; err != nil {
 		return nil, err
 	}
 
