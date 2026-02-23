@@ -59,8 +59,6 @@ func main() {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	// rid := ulid.Make().String()
-	// logger := mainLog.With(zap.String("rid", rid))
 	db.Logger = mainLog.LogMode(logLevel)
 
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
