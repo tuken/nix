@@ -7,6 +7,10 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -155,6 +159,63 @@ func (r *queryResolver) Fields(ctx context.Context) ([]*model.Field, error) {
 	}
 
 	return fields, nil
+}
+
+// Forecasts is the resolver for the forecasts field.
+func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitude float64) ([]*model.Forecast, error) {
+	url := fmt.Sprintf(
+		"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Asia/Tokyo",
+		latitude, longitude,
+	)
+
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		res.Body.Close()
+	}()
+
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// ステータスコードチェック
+	if res.StatusCode >= http.StatusBadRequest {
+		return nil, fmt.Errorf("error http response(%d) (url=%s) (body=%s)", res.StatusCode, url, string(resBody))
+	}
+
+	forecast := struct {
+		Latitude  float64 `json:"latitude"`
+		Longitude float64 `json:"longitude"`
+		Timezone  string  `json:"timezone"`
+		Daily     struct {
+			Time           []string  `json:"time"`
+			TemperatureMax []float64 `json:"temperature_2m_max"`
+			TemperatureMin []float64 `json:"temperature_2m_min"`
+			Precipitation  []float64 `json:"precipitation_sum"`
+			WeatherCode    []int     `json:"weathercode"`
+		} `json:"daily"`
+	}{}
+	if err := json.Unmarshal(resBody, &forecast); err != nil {
+		return nil, fmt.Errorf("error unmarshal response body (body=%s): %v", string(resBody), err)
+	}
+
+	result := make([]*model.Forecast, len(forecast.Daily.Time))
+	for i := range forecast.Daily.Time {
+
+		result[i] = &model.Forecast{
+			Time:             forecast.Daily.Time[i],
+			TemperatureMax:   forecast.Daily.TemperatureMax[i],
+			TemperatureMin:   forecast.Daily.TemperatureMin[i],
+			PrecipitationSum: forecast.Daily.Precipitation[i],
+			WeatherCode:      forecast.Daily.WeatherCode[i],
+		}
+	}
+
+	return result, nil
 }
 
 // Mutation returns MutationResolver implementation.
