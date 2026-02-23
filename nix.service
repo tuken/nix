@@ -1,0 +1,15 @@
+[Unit]
+Description=Agrimo GraphQL Server
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+#WorkingDirectory=/home/secual/go/src/github.com/secual/fb-api
+EnvironmentFile=/etc/systemd/nix.env
+ExecStart=/home/ec2-user/go/src/github.com/tuken/nix/nix
+KillMode=process
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
