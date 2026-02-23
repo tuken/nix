@@ -53,6 +53,8 @@ type Query {
   roles: [Role!]!
   users: [User!]!
   fields: [Field!]!
+  # 1週間分の天気予報を取得
+  forecasts(latitude: Float!, longitude: Float!): [Forecast!]!
 }
 
 input NewOrg {
@@ -99,4 +101,12 @@ type Mutation {
   createOrg(input: NewOrg!): Org!
   createUser(input: NewUser!): User!
   createField(input: NewField!): Field!
+}
+
+type Forecast {
+  time: String!
+  temperatureMax: Float!
+  temperatureMin: Float!
+  precipitationSum: Float!
+  weatherCode: Int!
 }
