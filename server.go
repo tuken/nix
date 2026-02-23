@@ -77,6 +77,9 @@ func main() {
 	queryLogger := &middleware.QueryLogger{DB: db, Log: mainLog}
 	srv.AroundOperations(queryLogger.Middleware)
 
+	// ヘルスチェックエンドポイント
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
+
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
