@@ -76,7 +76,6 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField
 	d := middleware.MustDB(ctx)
 
 	newField := &db.Field{
-		OrgID:       uint(input.OrgID),
 		UserID:      uint(input.UserID),
 		Name:        input.Name,
 		Latitude:    input.Latitude,
@@ -84,7 +83,7 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField
 		Boundary:    db.Polygon{WKT: input.Boundary},
 		PostalCode:  input.PostalCode,
 		Address:     input.Address,
-		FieldTypeID: uint(input.FeildTypeID),
+		FieldTypeID: uint(input.FieldTypeID),
 		Note:        input.Note,
 	}
 
@@ -108,6 +107,11 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField
 	copier.Copy(field, newField)
 
 	return field, nil
+}
+
+// CreateWorkReport is the resolver for the createWorkReport field.
+func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.NewWorkReport) (*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: CreateWorkReport - createWorkReport"))
 }
 
 // Orgs is the resolver for the orgs field.
@@ -159,6 +163,30 @@ func (r *queryResolver) Fields(ctx context.Context) ([]*model.Field, error) {
 	}
 
 	return fields, nil
+}
+
+// CropItems is the resolver for the cropItems field.
+func (r *queryResolver) CropItems(ctx context.Context) ([]*model.CropItem, error) {
+	d := middleware.MustDB(ctx)
+
+	var items []*model.CropItem
+	if err := d.Find(&items).Error; err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+// CropVarieties is the resolver for the cropVarieties field.
+func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model.CropVariety, error) {
+	d := middleware.MustDB(ctx)
+
+	var varieties []*model.CropVariety
+	if err := d.Where("item_id = ?", itemID).Find(&varieties).Error; err != nil {
+		return nil, err
+	}
+
+	return varieties, nil
 }
 
 // Forecasts is the resolver for the forecasts field.
