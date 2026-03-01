@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -58,4 +59,45 @@ type Field struct {
 	FieldTypeID uint            `gorm:"comment:'フィールドタイプID'"`
 	Crop        string          `gorm:"comment:'作物'"`
 	Note        string          `gorm:"comment:'備考'"`
+}
+
+type WorkType struct {
+	gorm.Model
+	Name      string `gorm:"not null;comment:'作業タイプ名'"`
+	SortOrder uint8  `gorm:"not null;default:0;comment:'表示順'"`
+}
+
+type CropItem struct {
+	gorm.Model
+	Name      string `gorm:"not null;comment:'品目名（米/大豆/麦）'"`
+	SortOrder uint8  `gorm:"not null;default:0;comment:'表示順'"`
+}
+
+type CropVariety struct {
+	gorm.Model
+	Name      string   `gorm:"not null;comment:'品種名（コシヒカリ/あきたこまち/ササニシキ）'"`
+	ItemID    uint     `gorm:"not null;comment:'品目ID'"`
+	CropItem  CropItem `gorm:"foreignKey:ItemID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	SortOrder uint8    `gorm:"not null;default:0;comment:'表示順'"`
+}
+
+type WorkReport struct {
+	gorm.Model
+	UserID        uint            `gorm:"not null;comment:'利用者ID'"`
+	User          *User           `gorm:"foreignKey:UserID;references:ID;"`
+	FieldID       uint            `gorm:"not null;comment:'圃場ID'"`
+	Field         *Field          `gorm:"foreignKey:FieldID;references:ID;"`
+	WorkDate      time.Time       `gorm:"not null;comment:'作業日'"`
+	WorkTypeID    uint            `gorm:"not null;comment:'作業タイプID'"`
+	WorkType      WorkType        `gorm:"foreignKey:WorkTypeID;references:ID;"`
+	CropVarietyID uint            `gorm:"not null;comment:'品種ID'"`
+	CropVariety   CropVariety     `gorm:"foreignKey:CropVarietyID;references:ID;"`
+	WeatherCode   string          `gorm:"comment:'天候コード（open-meteoで使用しているコード）'"`
+	IsImage       bool            `gorm:"comment:'画像の有無（0：なし、1：あり）'"`
+	Temperature   sql.NullFloat64 `gorm:"comment:'気温（℃）'"`
+	Humidity      sql.NullFloat64 `gorm:"comment:'湿度（％）'"`
+	CropCondition sql.NullString  `gorm:"comment:'作物状況（生育状況・病害虫・水位など）'"`
+	Note          sql.NullString  `gorm:"comment:'備考'"`
+	CreatedBy     uint            `gorm:"not null;comment:'作成者ID'"`
+	UpdatedBy     uint            `gorm:"not null;comment:'更新者ID'"`
 }
