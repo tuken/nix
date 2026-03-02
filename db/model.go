@@ -92,7 +92,7 @@ type WorkReport struct {
 	WorkType      WorkType        `gorm:"foreignKey:WorkTypeID;references:ID;"`
 	CropVarietyID uint            `gorm:"not null;comment:'品種ID'"`
 	CropVariety   CropVariety     `gorm:"foreignKey:CropVarietyID;references:ID;"`
-	WeatherCode   string          `gorm:"comment:'天候コード（open-meteoで使用しているコード）'"`
+	WeatherCode   uint            `gorm:"comment:'天候コード（open-meteoで使用しているコード）'"`
 	IsImage       bool            `gorm:"comment:'画像の有無（0：なし、1：あり）'"`
 	Temperature   sql.NullFloat64 `gorm:"comment:'気温（℃）'"`
 	Humidity      sql.NullFloat64 `gorm:"comment:'湿度（％）'"`
