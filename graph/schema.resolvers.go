@@ -12,8 +12,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/jinzhu/copier"
-	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/middleware"
 )
@@ -34,84 +32,6 @@ func (r *mutationResolver) CreateOrg(ctx context.Context, input model.NewOrg) (*
 	}
 
 	return newOrg, nil
-}
-
-// CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	d := middleware.MustDB(ctx)
-
-	newUser := &db.User{
-		OrgID:      uint(input.OrgID),
-		RoleID:     uint(input.RoleID),
-		Email:      input.Email,
-		Password:   input.Password,
-		Name:       input.Name,
-		PostalCode: input.PostalCode,
-		Address:    input.Address,
-		Birthday:   input.Birthday,
-		Note:       input.Note,
-	}
-
-	if input.ParentID != nil {
-		newUser.ParentID.Scan(*input.ParentID)
-	}
-
-	if err := d.Create(newUser).Error; err != nil {
-		return nil, err
-	}
-
-	dbUser := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").First(&dbUser, newUser.ID).Error; err != nil {
-		return nil, err
-	}
-
-	user := model.User{}
-	copier.Copy(&user, &dbUser)
-
-	return &user, nil
-}
-
-// CreateField is the resolver for the createField field.
-func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField) (*model.Field, error) {
-	d := middleware.MustDB(ctx)
-
-	newField := &db.Field{
-		UserID:      uint(input.UserID),
-		Name:        input.Name,
-		Latitude:    input.Latitude,
-		Longitude:   input.Longitude,
-		Boundary:    db.Polygon{WKT: input.Boundary},
-		PostalCode:  input.PostalCode,
-		Address:     input.Address,
-		FieldTypeID: uint(input.FieldTypeID),
-		Note:        input.Note,
-	}
-
-	if input.FieldCode != nil {
-		newField.FieldCode.Scan(*input.FieldCode)
-	}
-
-	if input.Elevation != nil {
-		newField.Elevation.Scan(*input.Elevation)
-	}
-
-	if input.Area != nil {
-		newField.Area.Scan(*input.Area)
-	}
-
-	if err := d.Create(newField).Error; err != nil {
-		return nil, err
-	}
-
-	field := &model.Field{}
-	copier.Copy(field, newField)
-
-	return field, nil
-}
-
-// CreateWorkReport is the resolver for the createWorkReport field.
-func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.NewWorkReport) (*model.WorkReport, error) {
-	panic(fmt.Errorf("not implemented: CreateWorkReport - createWorkReport"))
 }
 
 // Orgs is the resolver for the orgs field.
@@ -136,33 +56,6 @@ func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
 	}
 
 	return roles, nil
-}
-
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	d := middleware.MustDB(ctx)
-
-	dbUser := []db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Find(&dbUser).Error; err != nil {
-		return nil, err
-	}
-
-	user := []*model.User{}
-	copier.Copy(&user, &dbUser)
-
-	return user, nil
-}
-
-// Fields is the resolver for the fields field.
-func (r *queryResolver) Fields(ctx context.Context) ([]*model.Field, error) {
-	d := middleware.MustDB(ctx)
-
-	var fields []*model.Field
-	if err := d.Find(&fields).Error; err != nil {
-		return nil, err
-	}
-
-	return fields, nil
 }
 
 // CropItems is the resolver for the cropItems field.
