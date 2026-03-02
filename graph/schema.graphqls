@@ -16,44 +16,6 @@ type Role {
   description: String
 }
 
-type User {
-  id: ID!
-  org: Org!
-  parent: User
-  role: Role!
-  email: String!
-  password: String!
-  name: String!
-  firstName: String!
-  lastName: String!
-  postalCode: String!
-  address: String!
-  gender: String
-  birthday: String!
-  note: String!
-}
-
-type FieldType {
-  id: ID!
-  name: String!
-}
-
-type Field {
-  id: ID!
-  org: Org!
-  user: User!
-  fieldType: FieldType!
-  fieldCode: String
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  elevation: Float
-  area: Float
-  postalCode: String!
-  address: String!
-  note: String!
-}
-
 type CropItem {
   id: ID!
   name: String!
@@ -65,36 +27,12 @@ type CropVariety {
   item: CropItem!
 }
 
-type WorkReport {
-  id: ID!
-  user: User!
-  field: Field!
-  workDate: Date!
-  workType: String!
-  cropVariety: CropVariety!
-  workHours: Float!
-  weatherCode: Int!
-  workDetail: String!
-  imageURL: String!
-}
-
 type Forecast {
   time: String!
   temperatureMax: Float!
   temperatureMin: Float!
   precipitationSum: Float!
   weatherCode: Int!
-}
-
-type Query {
-  orgs: [Org!]!
-  roles: [Role!]!
-  users: [User!]!
-  fields: [Field!]!
-  cropItems: [CropItem!]!
-  cropVarieties(itemID: Int!): [CropVariety!]!
-  # 1週間分の天気予報を取得
-  forecasts(latitude: Float!, longitude: Float!): [Forecast!]!
 }
 
 input NewOrg {
@@ -104,55 +42,15 @@ input NewOrg {
   note: String!
 }
 
-input NewUser {
-  orgID: Int!
-  parentID: Int
-  roleID: Int!
-  email: String!
-  password: String!
-  name: String!
-  firstName: String!
-  lastName: String!
-  postalCode: String!
-  address: String!
-  gender: String
-  birthday: String!
-  note: String!
-}
-
-input NewField {
-  userID: Int!
-  fieldTypeID: Int!
-  fieldCode: String
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  elevation: Float
-  area: Float
-  boundary: String!
-  postalCode: String!
-  address: String!
-  cropItemID: Int!
-  note: String!
-}
-
-scalar Date
-scalar Upload
-
-input NewWorkReport {
-  workDate: Date!
-  workType: String!
-  userID: Int!
-  fieldID: Int!
-  weatherCode: Int!
-  workHours: Float!
-  workDetail: String!
-  image: Upload
+type Query {
+  orgs: [Org!]!
+  roles: [Role!]!
+  cropItems: [CropItem!]!
+  cropVarieties(itemID: Int!): [CropVariety!]!
+  # 1週間分の天気予報を取得
+  forecasts(latitude: Float!, longitude: Float!): [Forecast!]!
 }
 
 type Mutation {
   createOrg(input: NewOrg!): Org!
-  createUser(input: NewUser!): User!
-  createField(input: NewField!): Field!
-  createWorkReport(input: NewWorkReport!): WorkReport!
 }

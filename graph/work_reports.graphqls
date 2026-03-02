@@ -1,0 +1,31 @@
+type WorkReport {
+  id: ID!
+  user: User!
+  field: Field!
+  workDate: Date!
+  workType: String!
+  cropVariety: CropVariety!
+  workHours: Float!
+  weatherCode: Int!
+  workDetail: String!
+  imageURL: String!
+}
+
+scalar Date
+scalar Upload
+
+input NewWorkReport {
+  workDate: Date!
+  workTypeID: ID!
+  userID: ID!
+  fieldID: ID!
+  cropVarietyID: ID!
+  weatherCode: Int!
+  workHours: Float!
+  workDetail: String!
+  image: Upload
+}
+
+extend type Mutation {
+  createWorkReport(input: NewWorkReport!): WorkReport!
+}

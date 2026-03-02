@@ -1,0 +1,41 @@
+type User {
+  id: ID!
+  org: Org!
+  parent: User
+  role: Role!
+  email: String!
+  password: String!
+  name: String!
+  firstName: String!
+  lastName: String!
+  postalCode: String!
+  address: String!
+  gender: String
+  birthday: String!
+  note: String!
+}
+
+input NewUser {
+  orgID: Int!
+  parentID: Int
+  roleID: Int!
+  email: String!
+  password: String!
+  name: String!
+  firstName: String!
+  lastName: String!
+  postalCode: String!
+  address: String!
+  gender: String
+  birthday: String!
+  note: String!
+}
+
+extend type Query {
+  users: [User!]!
+  user(id: ID!): User
+}
+
+extend type Mutation {
+  createUser(input: NewUser!): User!
+}

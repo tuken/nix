@@ -1,0 +1,45 @@
+type FieldType {
+  id: ID!
+  name: String!
+}
+
+type Field {
+  id: ID!
+  org: Org!
+  user: User!
+  fieldType: FieldType!
+  fieldCode: String
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  elevation: Float
+  area: Float
+  postalCode: String!
+  address: String!
+  note: String!
+}
+
+input NewField {
+  userID: Int!
+  fieldTypeID: Int!
+  fieldCode: String
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  elevation: Float
+  area: Float
+  boundary: String!
+  postalCode: String!
+  address: String!
+  cropItemID: Int!
+  note: String!
+}
+
+extend type Query {
+  fields: [Field!]!
+  field(id: ID!): Field
+}
+
+extend type Mutation {
+  createField(input: NewField!): Field!
+}
