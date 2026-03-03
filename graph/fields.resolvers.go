@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -55,10 +54,30 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFi
 
 // FindFieldsByUser is the resolver for the findFieldsByUser field.
 func (r *queryResolver) FindFieldsByUser(ctx context.Context, userID int) ([]*model.Field, error) {
-	panic(fmt.Errorf("not implemented: FindFieldsByUser - findFieldsByUser"))
+	d := middleware.MustDB(ctx)
+
+	dbField := []db.Field{}
+	if err := d.Preload("Org").Preload("User").Preload("FieldType").Find(&dbField, "user_id = ?", userID).Error; err != nil {
+		return nil, err
+	}
+
+	fields := []*model.Field{}
+	copier.Copy(&fields, &dbField)
+
+	return fields, nil
 }
 
 // GetField is the resolver for the getField field.
 func (r *queryResolver) GetField(ctx context.Context, id int) (*model.Field, error) {
-	panic(fmt.Errorf("not implemented: GetField - getField"))
+	d := middleware.MustDB(ctx)
+
+	dbField := db.Field{}
+	if err := d.Preload("Org").Preload("User").Preload("FieldType").Last(&dbField, id).Error; err != nil {
+		return nil, err
+	}
+
+	field := model.Field{}
+	copier.Copy(&field, &dbField)
+
+	return &field, nil
 }
