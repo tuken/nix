@@ -50,10 +50,8 @@ type FieldType struct {
 
 type Field struct {
 	gorm.Model
-	OrgID       uint            `gorm:"not null;comment:'組織ID'"`
-	Org         Org             `gorm:"foreignKey:OrgID;references:ID;"`
 	UserID      uint            `gorm:"not null;comment:'ユーザーID'"`
-	User        *User           `gorm:"foreignKey:UserID;references:ID;"`
+	User        User            `gorm:"foreignKey:UserID;references:ID;"`
 	FieldCode   sql.NullString  `gorm:"comment:'フィールドコード'"`
 	Name        string          `gorm:"not null;comment:'名前'"`
 	Latitude    float64         `gorm:"not null;comment:'緯度'"`
@@ -64,7 +62,7 @@ type Field struct {
 	PostalCode  string          `gorm:"not null;comment:'郵便番号'"`
 	Address     string          `gorm:"not null;comment:'住所'"`
 	FieldTypeID uint            `gorm:"comment:'フィールドタイプID'"`
-	FieldType   *FieldType      `gorm:"foreignKey:FieldTypeID;references:ID;"`
+	FieldType   FieldType       `gorm:"foreignKey:FieldTypeID;references:ID;"`
 	Crop        string          `gorm:"comment:'作物'"`
 	Note        string          `gorm:"comment:'備考'"`
 }
