@@ -19,7 +19,7 @@ type Field {
   note: String!
 }
 
-input NewField {
+input CreateFieldInput {
   userID: Int!
   fieldTypeID: Int!
   fieldCode: String
@@ -36,10 +36,10 @@ input NewField {
 }
 
 extend type Query {
-  fields: [Field!]!
-  field(id: ID!): Field
+  findFieldsByUser(userId: Int!): [Field!]!
+  getField(id: ID!): Field!
 }
 
 extend type Mutation {
-  createField(input: NewField!): Field!
+  createField(input: CreateFieldInput!): Field!
 }

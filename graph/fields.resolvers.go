@@ -16,7 +16,7 @@ import (
 )
 
 // CreateField is the resolver for the createField field.
-func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField) (*model.Field, error) {
+func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFieldInput) (*model.Field, error) {
 	d := middleware.MustDB(ctx)
 
 	newField := &db.Field{
@@ -53,19 +53,12 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.NewField
 	return field, nil
 }
 
-// Fields is the resolver for the fields field.
-func (r *queryResolver) Fields(ctx context.Context) ([]*model.Field, error) {
-	d := middleware.MustDB(ctx)
-
-	var fields []*model.Field
-	if err := d.Find(&fields).Error; err != nil {
-		return nil, err
-	}
-
-	return fields, nil
+// FindFieldsByUser is the resolver for the findFieldsByUser field.
+func (r *queryResolver) FindFieldsByUser(ctx context.Context, userID int) ([]*model.Field, error) {
+	panic(fmt.Errorf("not implemented: FindFieldsByUser - findFieldsByUser"))
 }
 
-// Field is the resolver for the field field.
-func (r *queryResolver) Field(ctx context.Context, id int) (*model.Field, error) {
-	panic(fmt.Errorf("not implemented: Field - field"))
+// GetField is the resolver for the getField field.
+func (r *queryResolver) GetField(ctx context.Context, id int) (*model.Field, error) {
+	panic(fmt.Errorf("not implemented: GetField - getField"))
 }

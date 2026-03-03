@@ -15,7 +15,7 @@ type User {
   note: String!
 }
 
-input NewUser {
+input CreateUserInput {
   orgID: Int!
   parentID: Int
   roleID: Int!
@@ -33,9 +33,9 @@ input NewUser {
 
 extend type Query {
   users: [User!]!
-  user(id: ID!): User
+  getUser(id: ID!): User!
 }
 
 extend type Mutation {
-  createUser(input: NewUser!): User!
+  createUser(input: CreateUserInput!): User!
 }

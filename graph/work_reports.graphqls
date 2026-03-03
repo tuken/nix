@@ -1,3 +1,6 @@
+scalar Date
+scalar Upload
+
 type WorkReport {
   id: ID!
   user: User!
@@ -11,10 +14,7 @@ type WorkReport {
   imageURL: String!
 }
 
-scalar Date
-scalar Upload
-
-input NewWorkReport {
+input CreateWorkReportInput {
   workDate: Date!
   workTypeID: ID!
   userID: ID!
@@ -26,6 +26,12 @@ input NewWorkReport {
   image: Upload
 }
 
+extend type Query {
+  findWorkReportsByUser(userId: ID!): [WorkReport!]!
+  findWorkReportsByField(fieldId: ID!): [WorkReport!]!
+  getWorkReport(id: ID!): WorkReport!
+}
+
 extend type Mutation {
-  createWorkReport(input: NewWorkReport!): WorkReport!
+  createWorkReport(input: CreateWorkReportInput!): WorkReport!
 }

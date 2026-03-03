@@ -16,7 +16,7 @@ import (
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
 	d := middleware.MustDB(ctx)
 
 	newUser := &db.User{
@@ -65,7 +65,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	return user, nil
 }
 
-// User is the resolver for the user field.
-func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+// GetUser is the resolver for the getUser field.
+func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: GetUser - getUser"))
 }

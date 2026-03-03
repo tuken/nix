@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -15,7 +16,7 @@ import (
 )
 
 // CreateWorkReport is the resolver for the createWorkReport field.
-func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.NewWorkReport) (*model.WorkReport, error) {
+func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.CreateWorkReportInput) (*model.WorkReport, error) {
 	d := middleware.MustDB(ctx)
 
 	newWorkReport := &db.WorkReport{
@@ -34,4 +35,19 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.New
 	copier.Copy(workReport, newWorkReport)
 
 	return workReport, nil
+}
+
+// FindWorkReportsByUser is the resolver for the findWorkReportsByUser field.
+func (r *queryResolver) FindWorkReportsByUser(ctx context.Context, userID int) ([]*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: FindWorkReportsByUser - findWorkReportsByUser"))
+}
+
+// FindWorkReportsByField is the resolver for the findWorkReportsByField field.
+func (r *queryResolver) FindWorkReportsByField(ctx context.Context, fieldID int) ([]*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: FindWorkReportsByField - findWorkReportsByField"))
+}
+
+// GetWorkReport is the resolver for the getWorkReport field.
+func (r *queryResolver) GetWorkReport(ctx context.Context, id int) (*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: GetWorkReport - getWorkReport"))
 }
