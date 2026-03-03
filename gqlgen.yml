@@ -162,3 +162,6 @@ models:
   Date:
     model:
       - github.com/99designs/gqlgen/graphql.Date
+  Time:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
