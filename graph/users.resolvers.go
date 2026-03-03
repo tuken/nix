@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -67,5 +66,15 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: GetUser - getUser"))
+	d := middleware.MustDB(ctx)
+
+	dbUser := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Last(&dbUser, id).Error; err != nil {
+		return nil, err
+	}
+
+	user := model.User{}
+	copier.Copy(&user, &dbUser)
+
+	return &user, nil
 }
