@@ -51,7 +51,7 @@ type Query {
   orgs: [Org!]!
   roles: [Role!]!
   cropItems: [CropItem!]!
-  cropVarieties(itemID: Int!): [CropVariety!]!
+  cropVarieties(itemID: ID!): [CropVariety!]!
   weatherCodes: [weatherCode!]!
   forecasts(latitude: Float!, longitude: Float!, days: Int!): [Forecast!]!
 }
