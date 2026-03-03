@@ -74,7 +74,7 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	queryLogger := &middleware.QueryLogger{DB: db, Log: mainLog}
+	queryLogger := &middleware.QueryLogger{DB: db, Log: mainLog, SQLLogLevel: logLevel}
 	srv.AroundOperations(queryLogger.Middleware)
 
 	// ヘルスチェックエンドポイント
