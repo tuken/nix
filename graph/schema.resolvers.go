@@ -8,10 +8,12 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/tuken/nix/conf"
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/middleware"
 )
@@ -96,9 +98,16 @@ func (r *queryResolver) WeatherCodes(ctx context.Context) ([]*model.WeatherCode,
 
 // Forecasts is the resolver for the forecasts field.
 func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitude float64, days int) ([]*model.Forecast, error) {
+	if days < 1 || days > 16 {
+		return nil, errors.New("daysは1〜16の範囲で指定してください")
+	}
+
 	url := fmt.Sprintf(
-		"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Asia/Tokyo",
-		latitude, longitude,
+		"%s?latitude=%f&longitude=%f&timezone=Asia%%2FTokyo&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&forecast_days=%d",
+		conf.OpenMeteoURL,
+		latitude,
+		longitude,
+		days,
 	)
 
 	res, err := http.Get(url)
