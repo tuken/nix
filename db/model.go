@@ -41,6 +41,13 @@ type User struct {
 	Note       string         `gorm:"comment:'備考'"`
 }
 
+type FieldType struct {
+	gorm.Model
+	Name      string `gorm:"not null;comment:'圃場タイプ名'"`
+	SortOrder uint8  `gorm:"not null;default:0;comment:'表示順'"`
+	Note      string `gorm:"comment:'備考'"`
+}
+
 type Field struct {
 	gorm.Model
 	OrgID       uint            `gorm:"not null;comment:'組織ID'"`
@@ -57,6 +64,7 @@ type Field struct {
 	PostalCode  string          `gorm:"not null;comment:'郵便番号'"`
 	Address     string          `gorm:"not null;comment:'住所'"`
 	FieldTypeID uint            `gorm:"comment:'フィールドタイプID'"`
+	FieldType   *FieldType      `gorm:"foreignKey:FieldTypeID;references:ID;"`
 	Crop        string          `gorm:"comment:'作物'"`
 	Note        string          `gorm:"comment:'備考'"`
 }
