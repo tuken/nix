@@ -37,6 +37,21 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 	return workReport, nil
 }
 
+// WorkTypes is the resolver for the workTypes field.
+func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error) {
+	d := middleware.MustDB(ctx)
+
+	dbWT := []*db.WorkType{}
+	if err := d.Find(&dbWT).Error; err != nil {
+		return nil, err
+	}
+
+	workTypes := []*model.WorkType{}
+	copier.Copy(&workTypes, &dbWT)
+
+	return workTypes, nil
+}
+
 // FindWorkReportsByUser is the resolver for the findWorkReportsByUser field.
 func (r *queryResolver) FindWorkReportsByUser(ctx context.Context, userID int) ([]*model.WorkReport, error) {
 	panic(fmt.Errorf("not implemented: FindWorkReportsByUser - findWorkReportsByUser"))

@@ -1,6 +1,11 @@
 scalar Date
 scalar Upload
 
+type WorkType {
+  id: ID!
+  name: String!
+}
+
 type WorkReport {
   id: ID!
   user: User!
@@ -27,6 +32,7 @@ input CreateWorkReportInput {
 }
 
 extend type Query {
+  workTypes: [WorkType!]!
   findWorkReportsByUser(userId: ID!): [WorkReport!]!
   findWorkReportsByField(fieldId: ID!): [WorkReport!]!
   getWorkReport(id: ID!): WorkReport!
