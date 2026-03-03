@@ -17,7 +17,7 @@ import (
 )
 
 // CreateOrg is the resolver for the createOrg field.
-func (r *mutationResolver) CreateOrg(ctx context.Context, input model.NewOrg) (*model.Org, error) {
+func (r *mutationResolver) CreateOrg(ctx context.Context, input model.CreateOrgInput) (*model.Org, error) {
 	d := middleware.MustDB(ctx)
 
 	newOrg := &model.Org{
@@ -82,8 +82,20 @@ func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model
 	return varieties, nil
 }
 
+// WeatherCodes is the resolver for the weatherCodes field.
+func (r *queryResolver) WeatherCodes(ctx context.Context) ([]*model.WeatherCode, error) {
+	d := middleware.MustDB(ctx)
+
+	var weatherCodes []*model.WeatherCode
+	if err := d.Find(&weatherCodes).Error; err != nil {
+		return nil, err
+	}
+
+	return weatherCodes, nil
+}
+
 // Forecasts is the resolver for the forecasts field.
-func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitude float64) ([]*model.Forecast, error) {
+func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitude float64, days int) ([]*model.Forecast, error) {
 	url := fmt.Sprintf(
 		"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Asia/Tokyo",
 		latitude, longitude,

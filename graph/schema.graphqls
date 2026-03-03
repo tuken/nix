@@ -27,6 +27,11 @@ type CropVariety {
   item: CropItem!
 }
 
+type weatherCode {
+  code: Int!
+  japanese: String!
+}
+
 type Forecast {
   time: String!
   temperatureMax: Float!
@@ -35,7 +40,7 @@ type Forecast {
   weatherCode: Int!
 }
 
-input NewOrg {
+input CreateOrgInput {
   name: String!
   postalCode: String!
   address: String!
@@ -47,10 +52,10 @@ type Query {
   roles: [Role!]!
   cropItems: [CropItem!]!
   cropVarieties(itemID: Int!): [CropVariety!]!
-  # 1週間分の天気予報を取得
-  forecasts(latitude: Float!, longitude: Float!): [Forecast!]!
+  weatherCodes: [weatherCode!]!
+  forecasts(latitude: Float!, longitude: Float!, days: Int!): [Forecast!]!
 }
 
 type Mutation {
-  createOrg(input: NewOrg!): Org!
+  createOrg(input: CreateOrgInput!): Org!
 }
