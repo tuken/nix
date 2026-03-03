@@ -92,20 +92,20 @@ type CropVariety struct {
 type WorkReport struct {
 	gorm.Model
 	UserID        uint            `gorm:"not null;comment:'利用者ID'"`
-	User          *User           `gorm:"foreignKey:UserID;references:ID;"`
+	User          User            `gorm:"foreignKey:UserID;references:ID;"`
 	FieldID       uint            `gorm:"not null;comment:'圃場ID'"`
-	Field         *Field          `gorm:"foreignKey:FieldID;references:ID;"`
+	Field         Field           `gorm:"foreignKey:FieldID;references:ID;"`
 	WorkDate      time.Time       `gorm:"not null;comment:'作業日'"`
 	WorkTypeID    uint            `gorm:"not null;comment:'作業タイプID'"`
 	WorkType      WorkType        `gorm:"foreignKey:WorkTypeID;references:ID;"`
 	CropVarietyID uint            `gorm:"not null;comment:'品種ID'"`
 	CropVariety   CropVariety     `gorm:"foreignKey:CropVarietyID;references:ID;"`
 	WeatherCode   uint            `gorm:"comment:'天候コード（open-meteoで使用しているコード）'"`
+	WorkDetail    string          `gorm:"type:text;comment:'作業詳細'"`
 	IsImage       bool            `gorm:"comment:'画像の有無（0：なし、1：あり）'"`
 	Temperature   sql.NullFloat64 `gorm:"comment:'気温（℃）'"`
 	Humidity      sql.NullFloat64 `gorm:"comment:'湿度（％）'"`
 	CropCondition sql.NullString  `gorm:"comment:'作物状況（生育状況・病害虫・水位など）'"`
-	Note          sql.NullString  `gorm:"comment:'備考'"`
 	CreatedBy     uint            `gorm:"not null;comment:'作成者ID'"`
 	UpdatedBy     uint            `gorm:"not null;comment:'更新者ID'"`
 }
