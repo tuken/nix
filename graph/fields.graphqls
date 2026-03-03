@@ -36,6 +36,7 @@ input CreateFieldInput {
 }
 
 extend type Query {
+  fieldTypes: [FieldType!]!
   findFieldsByUser(userId: Int!): [Field!]!
   getField(id: ID!): Field!
 }

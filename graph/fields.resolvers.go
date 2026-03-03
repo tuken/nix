@@ -52,6 +52,21 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFi
 	return field, nil
 }
 
+// FieldTypes is the resolver for the fieldTypes field.
+func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, error) {
+	d := middleware.MustDB(ctx)
+
+	dbFT := []*db.FieldType{}
+	if err := d.Find(&dbFT).Error; err != nil {
+		return nil, err
+	}
+
+	fields := []*model.FieldType{}
+	copier.Copy(&fields, &dbFT)
+
+	return fields, nil
+}
+
 // FindFieldsByUser is the resolver for the findFieldsByUser field.
 func (r *queryResolver) FindFieldsByUser(ctx context.Context, userID int) ([]*model.Field, error) {
 	d := middleware.MustDB(ctx)
