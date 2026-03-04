@@ -72,21 +72,28 @@ func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, DBKey, d)
 		ctx = context.WithValue(ctx, LoggerKey, l)
 
-		cookie, err := r.Cookie("session")
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+		ref := r.Referer()
+		org := r.Header.Get("Origin")
+
+		if ref == "" || ref != org {
+
+			cookie, err := r.Cookie("session")
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			fmt.Printf("session: %#v\n", cookie)
+
+			user := db.User{}
+			if err := d.Preload("Org").Preload("Parent").Preload("Role").Joins("INNER JOIN sessions s ON (s.data -> '$.user.id') = users.id").Where("s.session_id = ?", cookie.Value).Last(&user).Error; err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			ctx = context.WithValue(ctx, UserKey, &user)
 		}
 
-		fmt.Printf("session: %#v\n", cookie)
-
-		user := db.User{}
-		if err := d.Preload("Org").Preload("Parent").Preload("Role").Joins("INNER JOIN sessions s ON (s.data -> '$.user.id') = users.id").Where("s.session_id = ?", cookie.Value).Last(&user).Error; err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		ctx = context.WithValue(ctx, UserKey, &user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
