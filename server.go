@@ -75,14 +75,14 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	queryLogger := &middleware.QueryLogger{DB: db, Log: mainLog, SQLLogLevel: logLevel}
-	srv.AroundOperations(queryLogger.Middleware)
+	srv.AroundOperations(middleware.LoggingMiddleware)
 
 	// ヘルスチェックエンドポイント
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", pipeline.AuthMiddleware(srv))
+	pre := &pipeline.Preprocessor{DB: db, Log: mainLog, SQLLogLevel: logLevel}
+	http.Handle("/query", pre.Pipeline(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", listenPort)
 	log.Fatal(http.ListenAndServe(":"+listenPort, nil))
