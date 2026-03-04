@@ -11,12 +11,12 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
-	"github.com/tuken/nix/middleware"
+	"github.com/tuken/nix/pipeline"
 )
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	newUser := &db.User{
 		OrgID:      uint(input.OrgID),
@@ -51,7 +51,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	dbUser := []db.User{}
 	if err := d.Preload("Org").Preload("Parent").Preload("Role").Find(&dbUser).Error; err != nil {
@@ -66,7 +66,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	dbUser := db.User{}
 	if err := d.Preload("Org").Preload("Parent").Preload("Role").Last(&dbUser, id).Error; err != nil {

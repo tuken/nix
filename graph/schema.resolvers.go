@@ -15,12 +15,12 @@ import (
 
 	"github.com/tuken/nix/conf"
 	"github.com/tuken/nix/graph/model"
-	"github.com/tuken/nix/middleware"
+	"github.com/tuken/nix/pipeline"
 )
 
 // CreateOrg is the resolver for the createOrg field.
 func (r *mutationResolver) CreateOrg(ctx context.Context, input model.CreateOrgInput) (*model.Org, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	newOrg := &model.Org{
 		Name:       input.Name,
@@ -38,7 +38,7 @@ func (r *mutationResolver) CreateOrg(ctx context.Context, input model.CreateOrgI
 
 // Orgs is the resolver for the orgs field.
 func (r *queryResolver) Orgs(ctx context.Context) ([]*model.Org, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	var orgs []*model.Org
 	if err := d.Find(&orgs).Error; err != nil {
@@ -50,7 +50,7 @@ func (r *queryResolver) Orgs(ctx context.Context) ([]*model.Org, error) {
 
 // Roles is the resolver for the roles field.
 func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	var roles []*model.Role
 	if err := d.Find(&roles).Error; err != nil {
@@ -62,7 +62,7 @@ func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
 
 // CropItems is the resolver for the cropItems field.
 func (r *queryResolver) CropItems(ctx context.Context) ([]*model.CropItem, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	var items []*model.CropItem
 	if err := d.Find(&items).Error; err != nil {
@@ -74,7 +74,7 @@ func (r *queryResolver) CropItems(ctx context.Context) ([]*model.CropItem, error
 
 // CropVarieties is the resolver for the cropVarieties field.
 func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model.CropVariety, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	var varieties []*model.CropVariety
 	if err := d.Where("item_id = ?", itemID).Find(&varieties).Error; err != nil {
@@ -86,7 +86,7 @@ func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model
 
 // WeatherCodes is the resolver for the weatherCodes field.
 func (r *queryResolver) WeatherCodes(ctx context.Context) ([]*model.WeatherCode, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	var weatherCodes []*model.WeatherCode
 	if err := d.Find(&weatherCodes).Error; err != nil {

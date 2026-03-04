@@ -11,12 +11,12 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
-	"github.com/tuken/nix/middleware"
+	"github.com/tuken/nix/pipeline"
 )
 
 // CreateField is the resolver for the createField field.
 func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFieldInput) (*model.Field, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	newField := &db.Field{
 		UserID:      uint(input.UserID),
@@ -54,7 +54,7 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFi
 
 // FieldTypes is the resolver for the fieldTypes field.
 func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	dbFT := []*db.FieldType{}
 	if err := d.Find(&dbFT).Error; err != nil {
@@ -69,7 +69,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, err
 
 // FindFieldsByUser is the resolver for the findFieldsByUser field.
 func (r *queryResolver) FindFieldsByUser(ctx context.Context, userID int) ([]*model.Field, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	dbField := []db.Field{}
 	if err := d.Preload("Org").Preload("User").Preload("FieldType").Find(&dbField, "user_id = ?", userID).Error; err != nil {
@@ -84,7 +84,7 @@ func (r *queryResolver) FindFieldsByUser(ctx context.Context, userID int) ([]*mo
 
 // GetField is the resolver for the getField field.
 func (r *queryResolver) GetField(ctx context.Context, id int) (*model.Field, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	dbField := db.Field{}
 	if err := d.Preload("Org").Preload("User").Preload("FieldType").Last(&dbField, id).Error; err != nil {

@@ -14,13 +14,13 @@ import (
 	"github.com/tuken/nix/conf"
 	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
-	"github.com/tuken/nix/middleware"
+	"github.com/tuken/nix/pipeline"
 )
 
 // CreateWorkReport is the resolver for the createWorkReport field.
 func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-	d := middleware.MustDB(ctx)
-	l := middleware.MustLogger(ctx)
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
 
 	isImage := input.Image != nil
 
@@ -76,7 +76,7 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 
 // WorkTypes is the resolver for the workTypes field.
 func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error) {
-	d := middleware.MustDB(ctx)
+	d := pipeline.MustDB(ctx)
 
 	dbWT := []*db.WorkType{}
 	if err := d.Find(&dbWT).Error; err != nil {
