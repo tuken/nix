@@ -16,7 +16,7 @@ type WorkReport {
   workHours: Float!
   weatherCode: Int!
   workDetail: String!
-  imageURL: String!
+  imageURL: String
 }
 
 input CreateWorkReportInput {
