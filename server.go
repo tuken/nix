@@ -15,6 +15,7 @@ import (
 	"github.com/tuken/nix/graph"
 	"github.com/tuken/nix/logger"
 	"github.com/tuken/nix/middleware"
+	"github.com/tuken/nix/pipeline"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -81,7 +82,7 @@ func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", pipeline.AuthMiddleware(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", listenPort)
 	log.Fatal(http.ListenAndServe(":"+listenPort, nil))
