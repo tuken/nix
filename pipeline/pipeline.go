@@ -73,7 +73,7 @@ func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, LoggerKey, l)
 
 		ref := r.Referer()
-		org := r.Header.Get("Origin")
+		org := r.Header.Get("Origin") + "/"
 
 		if ref == "" || ref != org {
 
