@@ -5,41 +5,39 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/tuken/nix/db"
+	"github.com/tuken/nix/logger"
+	"gorm.io/gorm"
+	gormlog "gorm.io/gorm/logger"
 )
 
-type UserContextKey struct{}
+type contextKey struct{ string }
 
 var (
-	// ...既存のDBKey, LoggerKey...
-	UserKey = UserContextKey{}
+	DBKey     = contextKey{"database"}
+	LoggerKey = contextKey{"logger"}
+	UserKey   = contextKey{"user"}
 )
 
-func AuthMiddleware(next http.Handler) http.Handler {
+func MustDB(ctx context.Context) *gorm.DB {
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	if db, ok := ctx.Value(DBKey).(*gorm.DB); ok {
+		return db
+	}
 
-		for k, v := range r.Header {
-			fmt.Printf("%s: %v\n", k, v)
-		}
-
-		cookie, err := r.Cookie("access_token")
-		if err != nil {
-			// Cookieがなければ未認証のまま
-			next.ServeHTTP(w, r)
-			return
-		}
-		// token := cookie.Value
-		fmt.Printf("access_token: %#v\n", cookie)
-
-		var user *db.User
-
-		ctx := context.WithValue(r.Context(), UserKey, user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	panic("missing db value in context")
 }
 
-// contextからユーザーを取得するヘルパー
+func MustLogger(ctx context.Context) logger.Logger {
+
+	if log, ok := ctx.Value(LoggerKey).(logger.Logger); ok {
+		return log
+	}
+
+	panic("missing logger value in context")
+}
+
 func MustUser(ctx context.Context) *db.User {
 
 	if user, ok := ctx.Value(UserKey).(*db.User); ok {
@@ -47,4 +45,48 @@ func MustUser(ctx context.Context) *db.User {
 	}
 
 	panic("missing user value in context")
+}
+
+type Preprocessor struct {
+	DB          *gorm.DB
+	Log         logger.Logger
+	SQLLogLevel gormlog.LogLevel
+}
+
+func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		for k, v := range r.Header {
+			fmt.Printf("%s: %v\n", k, v)
+		}
+
+		requestID := ulid.Make().String()
+
+		ctx := r.Context()
+		d := p.DB.WithContext(ctx)
+
+		l := p.Log.With("rid", requestID)
+		d.Logger = l.LogMode(p.SQLLogLevel)
+
+		ctx = context.WithValue(ctx, DBKey, d)
+		ctx = context.WithValue(ctx, LoggerKey, l)
+
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		fmt.Printf("session: %#v\n", cookie)
+
+		user := db.User{}
+		if err := d.Preload("Org").Preload("Parent").Preload("Role").Joins("INNER JOIN sessions s ON (s.data -> '$.user.id') = users.id").Where("s.session_id = ?", cookie.Value).Last(&user).Error; err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		ctx = context.WithValue(ctx, UserKey, &user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
