@@ -108,7 +108,7 @@ type WorkReport struct {
 	UpdatedBy     uint            `gorm:"not null;comment:'更新者ID'"`
 }
 
-// type WeatherCode struct {
-// 	Code     uint   `gorm:"primaryKey;comment:'天気コード'"`
-// 	Japanese string `gorm:"not null;comment:'天気の日本語表記'"`
-// }
+type WeatherCode struct {
+	Code     uint   `gorm:"primaryKey;comment:'天気コード'"`
+	Japanese string `gorm:"not null;comment:'天気の日本語表記'"`
+}
