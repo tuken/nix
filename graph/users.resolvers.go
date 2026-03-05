@@ -53,15 +53,15 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
-	dbUser := []db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Find(&dbUser).Error; err != nil {
+	dbUsers := []db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Find(&dbUsers).Error; err != nil {
 		return nil, err
 	}
 
-	user := []*model.User{}
-	copier.Copy(&user, &dbUser)
+	users := []*model.User{}
+	copier.Copy(&users, &dbUsers)
 
-	return user, nil
+	return users, nil
 }
 
 // GetUser is the resolver for the getUser field.
