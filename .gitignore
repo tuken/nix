@@ -33,3 +33,4 @@ go.work.sum
 .DS_Store
 graph/generated.go
 graph/model/models_gen.go
+sessions.data.json
