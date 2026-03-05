@@ -1,6 +1,7 @@
 type FieldType {
   id: ID!
   name: String!
+  sortOrder: Int!
 }
 
 type Field {

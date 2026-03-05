@@ -4,6 +4,7 @@ scalar Upload
 type WorkType {
   id: ID!
   name: String!
+  sortOrder: Int!
 }
 
 type WorkReport {

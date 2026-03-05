@@ -19,11 +19,13 @@ type Role {
 type CropItem {
   id: ID!
   name: String!
+  sortOrder: Int!
 }
 
 type CropVariety {
   id: ID!
   name: String!
+  sortOrder: Int!
   item: CropItem!
 }
 
