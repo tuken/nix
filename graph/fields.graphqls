@@ -6,7 +6,6 @@ type FieldType {
 
 type Field {
   id: ID!
-  org: Org!
   user: User!
   fieldType: FieldType!
   fieldCode: String
@@ -17,7 +16,9 @@ type Field {
   area: Float
   postalCode: String!
   address: String!
+  status: String!
   note: String!
+  users: [User!]
 }
 
 input CreateFieldInput {
@@ -29,10 +30,8 @@ input CreateFieldInput {
   longitude: Float!
   elevation: Float
   area: Float
-  boundary: String!
   postalCode: String!
   address: String!
-  cropItemID: Int!
   note: String!
 }
 

@@ -7,6 +7,8 @@ type Org {
   name: String!
   postalCode: String!
   address: String!
+  latitude: Float!
+  longitude: Float!
   note: String!
 }
 
@@ -24,12 +26,12 @@ type CropItem {
 
 type CropVariety {
   id: ID!
+  cropItem: CropItem!
   name: String!
   sortOrder: Int!
-  item: CropItem!
 }
 
-type weatherCode {
+type Weather {
   code: Int!
   japanese: String!
 }
@@ -39,13 +41,15 @@ type Forecast {
   temperatureMax: Float!
   temperatureMin: Float!
   precipitationSum: Float!
-  weatherCode: Int!
+  weather: Weather!
 }
 
 input CreateOrgInput {
   name: String!
   postalCode: String!
   address: String!
+  latitude: Float!
+  longitude: Float!
   note: String!
 }
 
@@ -54,7 +58,7 @@ type Query {
   roles: [Role!]!
   cropItems: [CropItem!]!
   cropVarieties(itemID: ID!): [CropVariety!]!
-  weatherCodes: [weatherCode!]!
+  weathers: [Weather!]!
   forecasts(latitude: Float!, longitude: Float!, days: Int!): [Forecast!]!
 }
 

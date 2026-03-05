@@ -7,16 +7,17 @@ type User {
   role: Role!
   email: String!
   password: String!
-  name: String!
+  farmName: String
   firstName: String!
   lastName: String!
   postalCode: String!
   address: String!
-  gender: String
-  birthday: String!
+  gender: String!
+  birthday: Date!
   note: String!
   lastLoginAt: Time
   createdAt: Time!
+  fields: [Field!]
 }
 
 input CreateUserInput {
@@ -25,12 +26,12 @@ input CreateUserInput {
   roleID: Int!
   email: String!
   password: String!
-  name: String!
+  farmName: String
   firstName: String!
   lastName: String!
   postalCode: String!
   address: String!
-  gender: String
+  gender: String!
   birthday: String!
   note: String!
 }

@@ -15,7 +15,7 @@ type WorkReport {
   workType: String!
   cropVariety: CropVariety!
   workHours: Float!
-  weatherCode: Int!
+  weather: Weather!
   workDetail: String!
   imageURL: String
 }
