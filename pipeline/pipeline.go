@@ -9,7 +9,6 @@ import (
 	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/logger"
 	"gorm.io/gorm"
-	gormlog "gorm.io/gorm/logger"
 )
 
 type contextKey struct{ string }
@@ -48,9 +47,8 @@ func MustUser(ctx context.Context) *db.User {
 }
 
 type Preprocessor struct {
-	DB          *gorm.DB
-	Log         logger.Logger
-	SQLLogLevel gormlog.LogLevel
+	DB  *gorm.DB
+	Log logger.Logger
 }
 
 func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
@@ -67,15 +65,14 @@ func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
 		d := p.DB.WithContext(ctx)
 
 		l := p.Log.With("rid", requestID)
-		d.Logger = l.LogMode(p.SQLLogLevel)
 
 		ctx = context.WithValue(ctx, DBKey, d)
 		ctx = context.WithValue(ctx, LoggerKey, l)
 
 		ref := r.Referer()
-		org := r.Header.Get("Origin") + "/"
+		orgRoot := r.Header.Get("Origin") + "/"
 
-		if ref == "" || ref != org {
+		if ref != orgRoot {
 
 			cookie, err := r.Cookie("session")
 			if err != nil {
