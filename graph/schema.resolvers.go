@@ -13,7 +13,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/conf"
+	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/pipeline"
 )
@@ -22,7 +24,7 @@ import (
 func (r *mutationResolver) CreateOrg(ctx context.Context, input model.CreateOrgInput) (*model.Org, error) {
 	d := pipeline.MustDB(ctx)
 
-	newOrg := &model.Org{
+	newOrg := &db.Org{
 		Name:       input.Name,
 		PostalCode: input.PostalCode,
 		Address:    input.Address,
@@ -33,17 +35,23 @@ func (r *mutationResolver) CreateOrg(ctx context.Context, input model.CreateOrgI
 		return nil, err
 	}
 
-	return newOrg, nil
+	org := model.Org{}
+	copier.Copy(&org, newOrg)
+
+	return &org, nil
 }
 
 // Orgs is the resolver for the orgs field.
 func (r *queryResolver) Orgs(ctx context.Context) ([]*model.Org, error) {
 	d := pipeline.MustDB(ctx)
 
-	var orgs []*model.Org
-	if err := d.Find(&orgs).Error; err != nil {
+	dbOrgs := []db.Org{}
+	if err := d.Find(&dbOrgs).Error; err != nil {
 		return nil, err
 	}
+
+	orgs := []*model.Org{}
+	copier.Copy(&orgs, &dbOrgs)
 
 	return orgs, nil
 }
@@ -52,10 +60,13 @@ func (r *queryResolver) Orgs(ctx context.Context) ([]*model.Org, error) {
 func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
 	d := pipeline.MustDB(ctx)
 
-	var roles []*model.Role
-	if err := d.Find(&roles).Error; err != nil {
+	dbRoles := []db.Role{}
+	if err := d.Find(&dbRoles).Error; err != nil {
 		return nil, err
 	}
+
+	roles := []*model.Role{}
+	copier.Copy(&roles, &dbRoles)
 
 	return roles, nil
 }
@@ -64,10 +75,13 @@ func (r *queryResolver) Roles(ctx context.Context) ([]*model.Role, error) {
 func (r *queryResolver) CropItems(ctx context.Context) ([]*model.CropItem, error) {
 	d := pipeline.MustDB(ctx)
 
-	var items []*model.CropItem
-	if err := d.Find(&items).Error; err != nil {
+	dbItems := []db.CropItem{}
+	if err := d.Find(&dbItems).Error; err != nil {
 		return nil, err
 	}
+
+	items := []*model.CropItem{}
+	copier.Copy(&items, &dbItems)
 
 	return items, nil
 }
@@ -76,10 +90,13 @@ func (r *queryResolver) CropItems(ctx context.Context) ([]*model.CropItem, error
 func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model.CropVariety, error) {
 	d := pipeline.MustDB(ctx)
 
-	var varieties []*model.CropVariety
-	if err := d.Preload("Item").Where("item_id = ?", itemID).Find(&varieties).Error; err != nil {
+	dbVarieties := []db.CropVariety{}
+	if err := d.Preload("Item").Where("item_id = ?", itemID).Find(&dbVarieties).Error; err != nil {
 		return nil, err
 	}
+
+	varieties := []*model.CropVariety{}
+	copier.Copy(&varieties, &dbVarieties)
 
 	return varieties, nil
 }
@@ -88,10 +105,13 @@ func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model
 func (r *queryResolver) WeatherCodes(ctx context.Context) ([]*model.WeatherCode, error) {
 	d := pipeline.MustDB(ctx)
 
-	var weatherCodes []*model.WeatherCode
-	if err := d.Find(&weatherCodes).Error; err != nil {
+	dbWeatherCodes := []db.WeatherCode{}
+	if err := d.Find(&dbWeatherCodes).Error; err != nil {
 		return nil, err
 	}
+
+	weatherCodes := []*model.WeatherCode{}
+	copier.Copy(&weatherCodes, &dbWeatherCodes)
 
 	return weatherCodes, nil
 }
