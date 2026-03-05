@@ -81,7 +81,7 @@ func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	pre := &pipeline.Preprocessor{DB: db, Log: mainLog, SQLLogLevel: logLevel}
+	pre := &pipeline.Preprocessor{DB: db, Log: mainLog}
 	http.Handle("/query", pre.Pipeline(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", listenPort)
