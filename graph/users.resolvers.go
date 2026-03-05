@@ -23,15 +23,18 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 		RoleID:     uint(input.RoleID),
 		Email:      input.Email,
 		Password:   input.Password,
-		Name:       input.Name,
 		PostalCode: input.PostalCode,
 		Address:    input.Address,
-		Birthday:   input.Birthday,
-		Note:       input.Note,
+		// Birthday:   input.Birthday,
+		Note: input.Note,
 	}
 
 	if input.ParentID != nil {
 		newUser.ParentID.Scan(*input.ParentID)
+	}
+
+	if input.FarmName != nil {
+		newUser.FarmName.Scan(*input.FarmName)
 	}
 
 	if err := d.Create(newUser).Error; err != nil {

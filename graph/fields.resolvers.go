@@ -23,7 +23,6 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFi
 		Name:        input.Name,
 		Latitude:    input.Latitude,
 		Longitude:   input.Longitude,
-		Boundary:    db.Polygon{WKT: input.Boundary},
 		PostalCode:  input.PostalCode,
 		Address:     input.Address,
 		FieldTypeID: uint(input.FieldTypeID),

@@ -101,19 +101,19 @@ func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model
 	return varieties, nil
 }
 
-// WeatherCodes is the resolver for the weatherCodes field.
-func (r *queryResolver) WeatherCodes(ctx context.Context) ([]*model.WeatherCode, error) {
+// Weathers is the resolver for the weathers field.
+func (r *queryResolver) Weathers(ctx context.Context) ([]*model.Weather, error) {
 	d := pipeline.MustDB(ctx)
 
-	dbWeatherCodes := []db.WeatherCode{}
-	if err := d.Find(&dbWeatherCodes).Error; err != nil {
+	dbWeathers := []db.Weather{}
+	if err := d.Find(&dbWeathers).Error; err != nil {
 		return nil, err
 	}
 
-	weatherCodes := []*model.WeatherCode{}
-	copier.Copy(&weatherCodes, &dbWeatherCodes)
+	weathers := []*model.Weather{}
+	copier.Copy(&weathers, &dbWeathers)
 
-	return weatherCodes, nil
+	return weathers, nil
 }
 
 // Forecasts is the resolver for the forecasts field.
@@ -165,6 +165,14 @@ func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitu
 		return nil, fmt.Errorf("error unmarshal response body (body=%s): %v", string(resBody), err)
 	}
 
+	dbWeathers := []db.Weather{}
+	if err := pipeline.MustDB(ctx).Find(&dbWeathers).Error; err != nil {
+		return nil, err
+	}
+
+	weathers := []*model.Weather{}
+	copier.Copy(&weathers, &dbWeathers)
+
 	result := make([]*model.Forecast, len(forecast.Daily.Time))
 	for i := range forecast.Daily.Time {
 
@@ -173,7 +181,17 @@ func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitu
 			TemperatureMax:   forecast.Daily.TemperatureMax[i],
 			TemperatureMin:   forecast.Daily.TemperatureMin[i],
 			PrecipitationSum: forecast.Daily.Precipitation[i],
-			WeatherCode:      forecast.Daily.WeatherCode[i],
+			Weather: func(code int) *model.Weather {
+
+				for _, w := range weathers {
+
+					if w.Code == code {
+						return w
+					}
+				}
+
+				return nil
+			}(forecast.Daily.WeatherCode[i]),
 		}
 	}
 
