@@ -91,7 +91,7 @@ func (r *queryResolver) CropVarieties(ctx context.Context, itemID int) ([]*model
 	d := pipeline.MustDB(ctx)
 
 	dbVarieties := []db.CropVariety{}
-	if err := d.Preload("Item").Where("item_id = ?", itemID).Find(&dbVarieties).Error; err != nil {
+	if err := d.Preload("Item").Where("crop_item_id = ?", itemID).Find(&dbVarieties).Error; err != nil {
 		return nil, err
 	}
 
