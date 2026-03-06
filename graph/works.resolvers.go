@@ -18,7 +18,7 @@ import (
 
 // CreateWorkReport is the resolver for the createWorkReport field.
 func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-	return createWWorkReport(ctx, pipeline.MustUser(ctx), input)
+	return createWorkReport(ctx, pipeline.MustUser(ctx), input)
 }
 
 // CreateWorkReportWithUserID is the resolver for the createWorkReportWithUserID field.
@@ -30,7 +30,7 @@ func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userI
 		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
-	return createWWorkReport(ctx, &user, input)
+	return createWorkReport(ctx, &user, input)
 }
 
 // WorkTypes is the resolver for the workTypes field.
