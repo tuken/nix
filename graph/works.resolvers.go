@@ -64,7 +64,7 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 	}
 
 	workReport := model.WorkReport{}
-	copier.Copy(&workReport, &newWorkReport)
+	copier.Copy(&workReport, &dbWorkReport)
 
 	if isImage {
 
