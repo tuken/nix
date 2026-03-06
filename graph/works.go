@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jinzhu/copier"
@@ -10,6 +11,7 @@ import (
 	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/pipeline"
+	"gorm.io/gorm"
 )
 
 func createWWorkReport(ctx context.Context, userID uint, input model.CreateWorkReportInput) (*model.WorkReport, error) {
@@ -74,4 +76,40 @@ func createWWorkReport(ctx context.Context, userID uint, input model.CreateWorkR
 
 	return &workReport, nil
 
+}
+
+func getWorkReport(ctx context.Context, userID uint, id int) (*model.WorkReport, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbWorkReport := db.WorkReport{}
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&dbWorkReport, "id = ? AND user_id = ?", id, userID).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No work_reports", "id", id, "user_id", userID)
+			return nil, nil
+		} else {
+			l.Errorw("Error work_reports", "id", id, "user_id", userID, "error", err)
+			return nil, err
+		}
+	}
+
+	workReport := model.WorkReport{}
+	copier.Copy(&workReport, &dbWorkReport)
+
+	if dbWorkReport.IsImage {
+
+		s3 := aws.NewS3Client()
+
+		url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", dbWorkReport.ID))
+		if err != nil {
+			l.Errorw("Error get signed URL", "key", fmt.Sprintf("WorkReports/%d.jpg", dbWorkReport.ID), "error", err)
+			return nil, err
+		}
+
+		workReport.ImageURL = &url
+	}
+
+	return &workReport, nil
 }
