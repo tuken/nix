@@ -44,7 +44,7 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 
 	if isImage {
 
-		l.Infof("Upload", "filename", input.Image.Filename, "size", input.Image.Size, "mime", input.Image.ContentType)
+		l.Infow("Upload", "filename", input.Image.Filename, "size", input.Image.Size, "mime", input.Image.ContentType)
 
 		key := fmt.Sprintf("WorkReports/%d.jpg", newWorkReport.ID)
 
