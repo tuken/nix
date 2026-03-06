@@ -37,8 +37,8 @@ extend type Query {
   getWorkReportWithUserID(userID: ID!, id: ID!): WorkReport
   listWorkReports: [WorkReport!]!
   listWorkReportsWithUserID(userId: ID!): [WorkReport!]!
-  findWorkReports(startDate: Date!, endData: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
-  findWorkReportsWithUserID(userID: ID!, startDate: Date!, endData: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
+  findWorkReports(startDate: Date!, endDate: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
+  findWorkReportsWithUserID(userID: ID!, startDate: Date!, endDate: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
 }
 
 extend type Mutation {

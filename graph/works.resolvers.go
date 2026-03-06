@@ -83,12 +83,12 @@ func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID in
 }
 
 // FindWorkReports is the resolver for the findWorkReports field.
-func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endData time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
-	return findWorkReports(ctx, pipeline.MustUser(ctx), startDate, endData, ownerID, fieldID, workTypeID)
+func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
+	return findWorkReports(ctx, pipeline.MustUser(ctx), startDate, endDate, ownerID, fieldID, workTypeID)
 }
 
 // FindWorkReportsWithUserID is the resolver for the findWorkReportsWithUserID field.
-func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID int, startDate time.Time, endData time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
+func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID int, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
@@ -96,5 +96,5 @@ func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID in
 		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
-	return findWorkReports(ctx, &user, startDate, endData, ownerID, fieldID, workTypeID)
+	return findWorkReports(ctx, &user, startDate, endDate, ownerID, fieldID, workTypeID)
 }

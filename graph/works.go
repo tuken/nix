@@ -197,7 +197,7 @@ func listWorkReports(ctx context.Context, user *db.User) ([]*model.WorkReport, e
 	return workReport, nil
 }
 
-func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, endData time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
+func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
