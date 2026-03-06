@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func createWWorkReport(ctx context.Context, userID uint, input model.CreateWorkReportInput) (*model.WorkReport, error) {
+func createWWorkReport(ctx context.Context, user *db.User, input model.CreateWorkReportInput) (*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
@@ -22,7 +22,7 @@ func createWWorkReport(ctx context.Context, userID uint, input model.CreateWorkR
 	isImage := input.Image != nil
 
 	newWorkReport := &db.WorkReport{
-		UserID:        userID,
+		UserID:        user.ID,
 		FieldID:       uint(input.FieldID),
 		WorkDate:      input.WorkDate,
 		WorkTypeID:    uint(input.WorkTypeID),
@@ -78,19 +78,41 @@ func createWWorkReport(ctx context.Context, userID uint, input model.CreateWorkR
 
 }
 
-func getWorkReport(ctx context.Context, userID uint, id int) (*model.WorkReport, error) {
+func getWorkReport(ctx context.Context, user *db.User, id int) (*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReport := db.WorkReport{}
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&dbWorkReport, "id = ? AND user_id = ?", id, userID).Error; err != nil {
+	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather")
+
+	switch user.Role.Name {
+
+	case "admin":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", user.OrgID)
+
+	case "owner":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.user_id = ?", user.ID)
+
+	case "worker":
+		fieldIDs := []uint{}
+		for _, f := range user.Fields {
+			fieldIDs = append(fieldIDs, f.ID)
+		}
+
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.id IN (?)", fieldIDs)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", user.Role.Name)
+	}
+
+	if err := query.First(&dbWorkReport, id).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			l.Errorw("No work_reports", "id", id, "user_id", userID)
+			l.Errorw("No work_reports", "id", id, "user_id", user.ID)
 			return nil, nil
 		} else {
-			l.Errorw("Error work_reports", "id", id, "user_id", userID, "error", err)
+			l.Errorw("Error work_reports", "id", id, "user_id", user.ID, "error", err)
 			return nil, err
 		}
 	}
