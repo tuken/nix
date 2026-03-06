@@ -12,21 +12,21 @@ type WorkReport {
   user: User!
   field: Field!
   workDate: Date!
-  workType: String!
-  cropVariety: CropVariety!
   workHours: Float!
+  workType: WorkType!
+  cropVariety: CropVariety!
   weather: Weather!
   workDetail: String!
   imageURL: String
 }
 
 input CreateWorkReportInput {
-  workDate: Date!
-  workTypeID: ID!
   fieldID: ID!
+  workDate: Date!
+  workHours: Float!
+  workTypeID: ID!
   cropVarietyID: ID!
   weatherCode: Int!
-  workHours: Float!
   workDetail: String!
   image: Upload
 }
