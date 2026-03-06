@@ -63,13 +63,14 @@ type Field struct {
 	Longitude   float64         `gorm:"not null;comment:'経度'"`
 	Elevation   sql.NullFloat64 `gorm:"comment:'標高(m)'"`
 	Area        sql.NullFloat64 `gorm:"comment:'面積(m²)'"`
-	Boundary    *Polygon        `gorm:"type:TEXT;comment:'圃場の境界ポリゴン（WKT形式：POLYGON）'"`
-	PostalCode  string          `gorm:"not null;comment:'郵便番号'"`
-	Address     string          `gorm:"not null;comment:'住所'"`
-	Crop        sql.NullString  `gorm:"comment:'栽培作物（米、麦、トマトなど）'"`
-	Status      string          `gorm:"type:enum('cultivated','fallow','abandoned');default:'cultivated';comment:'利用状態（cultivated：耕作中、fallow：休耕中、abandoned：耕作放棄）'"`
-	Note        string          `gorm:"comment:'備考'"`
-	Users       []*User         `gorm:"many2many:field_users;joinForeignKey:FieldID;joinReferences:UserID"`
+	// Boundary    *Polygon        `gorm:"type:TEXT;comment:'圃場の境界ポリゴン（WKT形式：POLYGON）'"`
+	Boundary   sql.NullString
+	PostalCode string         `gorm:"not null;comment:'郵便番号'"`
+	Address    string         `gorm:"not null;comment:'住所'"`
+	Crop       sql.NullString `gorm:"comment:'栽培作物（米、麦、トマトなど）'"`
+	Status     string         `gorm:"type:enum('cultivated','fallow','abandoned');default:'cultivated';comment:'利用状態（cultivated：耕作中、fallow：休耕中、abandoned：耕作放棄）'"`
+	Note       string         `gorm:"comment:'備考'"`
+	Users      []*User        `gorm:"many2many:field_users;joinForeignKey:FieldID;joinReferences:UserID"`
 }
 
 type FieldUser struct {
