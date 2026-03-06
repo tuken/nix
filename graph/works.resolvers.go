@@ -36,6 +36,7 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 	}
 
 	if err := d.Create(newWorkReport).Error; err != nil {
+		l.Errorw("Error insert work_reports", "data", newWorkReport, "error", err)
 		return nil, err
 	}
 
@@ -45,7 +46,7 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 
 		l.Infof("Upload", "filename", input.Image.Filename, "size", input.Image.Size, "mime", input.Image.ContentType)
 
-		key := fmt.Sprintf("workReports/%d.jpg", newWorkReport.ID)
+		key := fmt.Sprintf("WorkReports/%d.jpg", newWorkReport.ID)
 
 		if err := s3.Upload(input.Image.File, conf.S3BucketName, key, input.Image.ContentType); err != nil {
 
@@ -57,21 +58,26 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 		}
 	}
 
-	workReport := &model.WorkReport{}
-	copier.Copy(workReport, newWorkReport)
+	dbWorkReport := db.WorkReport{}
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").Find(&dbWorkReport, newWorkReport.ID).Error; err != nil {
+		return nil, err
+	}
+
+	workReport := model.WorkReport{}
+	copier.Copy(&workReport, &newWorkReport)
 
 	if isImage {
 
-		url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("workReports/%d.jpg", newWorkReport.ID))
+		url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", newWorkReport.ID))
 		if err != nil {
-			l.Errorw("Error get signed URL", "key", fmt.Sprintf("workReports/%d.jpg", newWorkReport.ID), "error", err)
+			l.Errorw("Error get signed URL", "key", fmt.Sprintf("WorkReports/%d.jpg", newWorkReport.ID), "error", err)
 			return nil, err
 		}
 
 		workReport.ImageURL = &url
 	}
 
-	return workReport, nil
+	return &workReport, nil
 }
 
 // WorkTypes is the resolver for the workTypes field.
