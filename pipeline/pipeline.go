@@ -83,7 +83,7 @@ func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
 			fmt.Printf("session: %#v\n", cookie)
 
 			user := db.User{}
-			if err := d.Preload("Org").Preload("Parent").Preload("Role").Joins("INNER JOIN sessions s ON (s.data -> '$.user.id') = users.id").Where("s.session_id = ?", cookie.Value).Last(&user).Error; err != nil {
+			if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").Joins("INNER JOIN sessions s ON (s.data -> '$.user.id') = users.id").Where("s.session_id = ?", cookie.Value).Last(&user).Error; err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
