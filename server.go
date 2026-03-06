@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	"github.com/tuken/nix/middleware"
 	"github.com/tuken/nix/pipeline"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gormlog "gorm.io/gorm/logger"
@@ -63,6 +65,10 @@ func main() {
 	db.Logger = mainLog.LogMode(logLevel)
 
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	srv.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
+		mainLog.Errorw("gqlgen panic", "error", err)
+		return gqlerror.Errorf("internal error: %v", err)
+	})
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
