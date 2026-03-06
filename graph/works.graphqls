@@ -23,7 +23,6 @@ type WorkReport {
 input CreateWorkReportInput {
   workDate: Date!
   workTypeID: ID!
-  userID: ID!
   fieldID: ID!
   cropVarietyID: ID!
   weatherCode: Int!
@@ -41,4 +40,5 @@ extend type Query {
 
 extend type Mutation {
   createWorkReport(input: CreateWorkReportInput!): WorkReport!
+  createWorkReportWithUserID(userID: Int!, input: CreateWorkReportInput!): WorkReport!
 }
