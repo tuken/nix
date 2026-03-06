@@ -37,10 +37,13 @@ input CreateFieldInput {
 
 extend type Query {
   fieldTypes: [FieldType!]!
-  findFieldsByUser(userId: Int!): [Field!]!
-  getField(id: ID!): Field!
+  getField(id: ID!): Field
+  getFieldByUserID(userID: ID!, id: ID!): Field
+  listFields: [Field!]!
+  listFieldsWithUserID(userID: ID!): [Field!]!
 }
 
 extend type Mutation {
   createField(input: CreateFieldInput!): Field!
+  createFieldWithUserID(userID: ID!, input: CreateFieldInput!): Field!
 }
