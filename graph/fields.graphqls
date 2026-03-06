@@ -4,6 +4,12 @@ type FieldType {
   sortOrder: Int!
 }
 
+type FieldState {
+  id: ID!
+  name: String!
+  description: String!
+}
+
 type Field {
   id: ID!
   user: User!
@@ -14,22 +20,23 @@ type Field {
   longitude: Float!
   elevation: Float
   area: Float
+  fieldState: FieldState!
   postalCode: String!
   address: String!
-  status: String!
   note: String!
   users: [User!]
 }
 
 input CreateFieldInput {
-  userID: Int!
-  fieldTypeID: Int!
+  userID: ID!
+  fieldTypeID: ID!
   fieldCode: String
   name: String!
   latitude: Float!
   longitude: Float!
   elevation: Float
   area: Float
+  fieldStateID: ID!
   postalCode: String!
   address: String!
   note: String!
@@ -37,10 +44,13 @@ input CreateFieldInput {
 
 extend type Query {
   fieldTypes: [FieldType!]!
+  fieldStates: [FieldState!]!
   getField(id: ID!): Field
   getFieldByUserID(userID: ID!, id: ID!): Field
   listFields: [Field!]!
   listFieldsWithUserID(userID: ID!): [Field!]!
+  findFields(ownerID: ID, fieldID: ID, fieldTypeID: ID, fieldStateID: ID): [Field!]!
+  findFieldsWithUserID(userID: ID!, ownerID: ID, fieldTypeID: ID, fieldStateID: ID): [Field!]!
 }
 
 extend type Mutation {
