@@ -26,7 +26,7 @@ func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userI
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
-	if err := d.First(&user, userID).Error; err != nil {
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
 		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
@@ -58,7 +58,7 @@ func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int,
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
-	if err := d.First(&user, userID).Error; err != nil {
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
 		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
@@ -75,7 +75,7 @@ func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID in
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
-	if err := d.First(&user, userID).Error; err != nil {
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
 		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
@@ -92,7 +92,7 @@ func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID in
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
-	if err := d.First(&user, userID).Error; err != nil {
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
 		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
