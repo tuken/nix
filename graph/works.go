@@ -60,6 +60,7 @@ func createWWorkReport(ctx context.Context, userID uint, input model.CreateWorkR
 
 	workReport := model.WorkReport{}
 	copier.Copy(&workReport, &dbWorkReport)
+	copier.Copy(&workReport.User, &dbWorkReport.User)
 
 	if isImage {
 
