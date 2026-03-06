@@ -18,12 +18,19 @@ import (
 
 // CreateWorkReport is the resolver for the createWorkReport field.
 func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-	return createWWorkReport(ctx, pipeline.MustUser(ctx).ID, input)
+	return createWWorkReport(ctx, pipeline.MustUser(ctx), input)
 }
 
 // CreateWorkReportWithUserID is the resolver for the createWorkReportWithUserID field.
 func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userID int, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-	return createWWorkReport(ctx, uint(userID), input)
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return createWWorkReport(ctx, &user, input)
 }
 
 // WorkTypes is the resolver for the workTypes field.
@@ -43,12 +50,19 @@ func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error
 
 // GetWorkReport is the resolver for the getWorkReport field.
 func (r *queryResolver) GetWorkReport(ctx context.Context, id int) (*model.WorkReport, error) {
-	return getWorkReport(ctx, pipeline.MustUser(ctx).ID, id)
+	return getWorkReport(ctx, pipeline.MustUser(ctx), id)
 }
 
 // GetWorkReportWithUserID is the resolver for the getWorkReportWithUserID field.
 func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int, id int) (*model.WorkReport, error) {
-	return getWorkReport(ctx, uint(userID), id)
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return getWorkReport(ctx, &user, id)
 }
 
 // ListWorkReports is the resolver for the listWorkReports field.
