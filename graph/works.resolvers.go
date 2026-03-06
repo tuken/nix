@@ -17,13 +17,11 @@ import (
 
 // CreateWorkReport is the resolver for the createWorkReport field.
 func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-
 	return createWWorkReport(ctx, pipeline.MustUser(ctx).ID, input)
 }
 
 // CreateWorkReportWithUserID is the resolver for the createWorkReportWithUserID field.
 func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userID int, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-
 	return createWWorkReport(ctx, uint(userID), input)
 }
 
