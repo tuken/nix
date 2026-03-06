@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -16,39 +17,19 @@ import (
 
 // CreateField is the resolver for the createField field.
 func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFieldInput) (*model.Field, error) {
+	return createField(ctx, pipeline.MustUser(ctx), input)
+}
+
+// CreateFieldWithUserID is the resolver for the createFieldWithUserID field.
+func (r *mutationResolver) CreateFieldWithUserID(ctx context.Context, userID int, input model.CreateFieldInput) (*model.Field, error) {
 	d := pipeline.MustDB(ctx)
 
-	newField := &db.Field{
-		UserID:      uint(input.UserID),
-		Name:        input.Name,
-		Latitude:    input.Latitude,
-		Longitude:   input.Longitude,
-		PostalCode:  input.PostalCode,
-		Address:     input.Address,
-		FieldTypeID: uint(input.FieldTypeID),
-		Note:        input.Note,
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
-	if input.FieldCode != nil {
-		newField.FieldCode.Scan(*input.FieldCode)
-	}
-
-	if input.Elevation != nil {
-		newField.Elevation.Scan(*input.Elevation)
-	}
-
-	if input.Area != nil {
-		newField.Area.Scan(*input.Area)
-	}
-
-	if err := d.Create(newField).Error; err != nil {
-		return nil, err
-	}
-
-	field := &model.Field{}
-	copier.Copy(field, newField)
-
-	return field, nil
+	return createField(ctx, &user, input)
 }
 
 // FieldTypes is the resolver for the fieldTypes field.
@@ -66,32 +47,36 @@ func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, err
 	return fields, nil
 }
 
-// FindFieldsByUser is the resolver for the findFieldsByUser field.
-func (r *queryResolver) FindFieldsByUser(ctx context.Context, userID int) ([]*model.Field, error) {
-	d := pipeline.MustDB(ctx)
-
-	dbField := []db.Field{}
-	if err := d.Preload("Org").Preload("User").Preload("FieldType").Find(&dbField, "user_id = ?", userID).Error; err != nil {
-		return nil, err
-	}
-
-	fields := []*model.Field{}
-	copier.Copy(&fields, &dbField)
-
-	return fields, nil
-}
-
 // GetField is the resolver for the getField field.
 func (r *queryResolver) GetField(ctx context.Context, id int) (*model.Field, error) {
+	return getField(ctx, pipeline.MustUser(ctx), id)
+}
+
+// GetFieldByUserID is the resolver for the getFieldByUserID field.
+func (r *queryResolver) GetFieldByUserID(ctx context.Context, userID int, id int) (*model.Field, error) {
 	d := pipeline.MustDB(ctx)
 
-	dbField := db.Field{}
-	if err := d.Preload("Org").Preload("User").Preload("FieldType").Last(&dbField, id).Error; err != nil {
-		return nil, err
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
-	field := model.Field{}
-	copier.Copy(&field, &dbField)
+	return getField(ctx, &user, id)
+}
 
-	return &field, nil
+// ListFields is the resolver for the listFields field.
+func (r *queryResolver) ListFields(ctx context.Context) ([]*model.Field, error) {
+	return listFields(ctx, pipeline.MustUser(ctx))
+}
+
+// ListFieldsWithUserID is the resolver for the listFieldsWithUserID field.
+func (r *queryResolver) ListFieldsWithUserID(ctx context.Context, userID int) ([]*model.Field, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return listFields(ctx, &user)
 }
