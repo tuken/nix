@@ -53,12 +53,19 @@ func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int,
 
 // ListWorkReports is the resolver for the listWorkReports field.
 func (r *queryResolver) ListWorkReports(ctx context.Context) ([]*model.WorkReport, error) {
-	panic(fmt.Errorf("not implemented: ListWorkReports - listWorkReports"))
+	return listWorkReports(ctx, pipeline.MustUser(ctx))
 }
 
 // ListWorkReportsWithUserID is the resolver for the listWorkReportsWithUserID field.
 func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID int) ([]*model.WorkReport, error) {
-	panic(fmt.Errorf("not implemented: ListWorkReportsWithUserID - listWorkReportsWithUserID"))
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return listWorkReports(ctx, &user)
 }
 
 // FindWorkReports is the resolver for the findWorkReports field.
