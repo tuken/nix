@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func createWWorkReport(ctx context.Context, user *db.User, input model.CreateWorkReportInput) (*model.WorkReport, error) {
+func createWorkReport(ctx context.Context, user *db.User, input model.CreateWorkReportInput) (*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
@@ -57,7 +57,7 @@ func createWWorkReport(ctx context.Context, user *db.User, input model.CreateWor
 	}
 
 	dbWorkReport := db.WorkReport{}
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").Find(&dbWorkReport, newWorkReport.ID).Error; err != nil {
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&dbWorkReport, newWorkReport.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -76,7 +76,6 @@ func createWWorkReport(ctx context.Context, user *db.User, input model.CreateWor
 	}
 
 	return &workReport, nil
-
 }
 
 func getWorkReport(ctx context.Context, user *db.User, id int) (*model.WorkReport, error) {
@@ -166,7 +165,6 @@ func listWorkReports(ctx context.Context, user *db.User) ([]*model.WorkReport, e
 	}
 
 	if err := query.Find(&dbWorkReports).Error; err != nil {
-
 		l.Errorw("Error work_reports", "user_id", user.ID, "role", user.Role.Name, "error", err)
 		return nil, err
 	}
