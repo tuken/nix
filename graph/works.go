@@ -113,3 +113,63 @@ func getWorkReport(ctx context.Context, userID uint, id int) (*model.WorkReport,
 
 	return &workReport, nil
 }
+
+func listWorkReports(ctx context.Context, user *db.User) ([]*model.WorkReport, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbWorkReports := []db.WorkReport{}
+	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather")
+
+	switch user.Role.Name {
+
+	case "admin":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", user.OrgID)
+
+	case "owner":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.user_id = ?", user.ID)
+
+	case "worker":
+		fieldIDs := []uint{}
+		for _, f := range user.Fields {
+			fieldIDs = append(fieldIDs, f.ID)
+		}
+
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.id IN (?)", fieldIDs)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", user.Role.Name)
+	}
+
+	if err := query.Find(&dbWorkReports).Error; err != nil {
+
+		l.Errorw("Error work_reports", "user_id", user.ID, "role", user.Role.Name, "error", err)
+		return nil, err
+	}
+
+	workReport := []*model.WorkReport{}
+
+	for _, dbwp := range dbWorkReports {
+
+		wp := model.WorkReport{}
+		copier.Copy(&wp, &dbwp)
+
+		if dbwp.IsImage {
+
+			s3 := aws.NewS3Client()
+
+			url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", dbwp.ID))
+			if err != nil {
+				l.Errorw("Error get signed URL", "key", fmt.Sprintf("WorkReports/%d.jpg", dbwp.ID), "error", err)
+				return nil, err
+			}
+
+			wp.ImageURL = &url
+		}
+
+		workReport = append(workReport, &wp)
+	}
+
+	return workReport, nil
+}
