@@ -36,15 +36,30 @@ func (r *mutationResolver) CreateFieldWithUserID(ctx context.Context, userID int
 func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, error) {
 	d := pipeline.MustDB(ctx)
 
-	dbFT := []*db.FieldType{}
-	if err := d.Find(&dbFT).Error; err != nil {
+	dbFieldType := []*db.FieldType{}
+	if err := d.Find(&dbFieldType).Error; err != nil {
 		return nil, err
 	}
 
 	fields := []*model.FieldType{}
-	copier.Copy(&fields, &dbFT)
+	copier.Copy(&fields, &dbFieldType)
 
 	return fields, nil
+}
+
+// FieldStates is the resolver for the fieldStates field.
+func (r *queryResolver) FieldStates(ctx context.Context) ([]*model.FieldState, error) {
+	d := pipeline.MustDB(ctx)
+
+	dbFieldState := []*db.FieldState{}
+	if err := d.Find(&dbFieldState).Error; err != nil {
+		return nil, err
+	}
+
+	fieldStates := []*model.FieldState{}
+	copier.Copy(&fieldStates, &dbFieldState)
+
+	return fieldStates, nil
 }
 
 // GetField is the resolver for the getField field.
@@ -79,4 +94,21 @@ func (r *queryResolver) ListFieldsWithUserID(ctx context.Context, userID int) ([
 	}
 
 	return listFields(ctx, &user)
+}
+
+// FindFields is the resolver for the findFields field.
+func (r *queryResolver) FindFields(ctx context.Context, ownerID *int, fieldID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
+	return findFields(ctx, pipeline.MustUser(ctx), ownerID, fieldTypeID, fieldStateID)
+}
+
+// FindFieldsWithUserID is the resolver for the findFieldsWithUserID field.
+func (r *queryResolver) FindFieldsWithUserID(ctx context.Context, userID int, ownerID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return findFields(ctx, &user, ownerID, fieldTypeID, fieldStateID)
 }
