@@ -8,6 +8,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -29,28 +30,43 @@ func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userI
 func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error) {
 	d := pipeline.MustDB(ctx)
 
-	dbWT := []*db.WorkType{}
-	if err := d.Find(&dbWT).Error; err != nil {
+	dbWorkTypes := []*db.WorkType{}
+	if err := d.Find(&dbWorkTypes).Error; err != nil {
 		return nil, err
 	}
 
 	workTypes := []*model.WorkType{}
-	copier.Copy(&workTypes, &dbWT)
+	copier.Copy(&workTypes, &dbWorkTypes)
 
 	return workTypes, nil
 }
 
-// FindWorkReportsByUser is the resolver for the findWorkReportsByUser field.
-func (r *queryResolver) FindWorkReportsByUser(ctx context.Context, userID int) ([]*model.WorkReport, error) {
-	panic(fmt.Errorf("not implemented: FindWorkReportsByUser - findWorkReportsByUser"))
-}
-
-// FindWorkReportsByField is the resolver for the findWorkReportsByField field.
-func (r *queryResolver) FindWorkReportsByField(ctx context.Context, fieldID int) ([]*model.WorkReport, error) {
-	panic(fmt.Errorf("not implemented: FindWorkReportsByField - findWorkReportsByField"))
-}
-
 // GetWorkReport is the resolver for the getWorkReport field.
 func (r *queryResolver) GetWorkReport(ctx context.Context, id int) (*model.WorkReport, error) {
-	panic(fmt.Errorf("not implemented: GetWorkReport - getWorkReport"))
+	return getWorkReport(ctx, pipeline.MustUser(ctx).ID, id)
+}
+
+// GetWorkReportWithUserID is the resolver for the getWorkReportWithUserID field.
+func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int, id int) (*model.WorkReport, error) {
+	return getWorkReport(ctx, uint(userID), id)
+}
+
+// ListWorkReports is the resolver for the listWorkReports field.
+func (r *queryResolver) ListWorkReports(ctx context.Context) ([]*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: ListWorkReports - listWorkReports"))
+}
+
+// ListWorkReportsWithUserID is the resolver for the listWorkReportsWithUserID field.
+func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID int) ([]*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: ListWorkReportsWithUserID - listWorkReportsWithUserID"))
+}
+
+// FindWorkReports is the resolver for the findWorkReports field.
+func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endData time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: FindWorkReports - findWorkReports"))
+}
+
+// FindWorkReportsWithUserID is the resolver for the findWorkReportsWithUserID field.
+func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID int, startDate time.Time, endData time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
+	panic(fmt.Errorf("not implemented: FindWorkReportsWithUserID - findWorkReportsWithUserID"))
 }
