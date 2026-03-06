@@ -61,7 +61,7 @@ func createField(ctx context.Context, user *db.User, input model.CreateFieldInpu
 	}
 
 	dbField := db.Field{}
-	if err := d.Preload("User").Preload("FieldType").Preload("Users").First(&dbField, newField.ID).Error; err != nil {
+	if err := d.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users").First(&dbField, newField.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -77,7 +77,7 @@ func getField(ctx context.Context, user *db.User, id int) (*model.Field, error) 
 	l := pipeline.MustLogger(ctx)
 
 	dbField := db.Field{}
-	query := d.Preload("User").Preload("FieldType").Preload("Users")
+	query := d.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users")
 
 	switch user.Role.Name {
 
@@ -122,7 +122,7 @@ func listFields(ctx context.Context, user *db.User) ([]*model.Field, error) {
 	l := pipeline.MustLogger(ctx)
 
 	dbFields := []db.Field{}
-	query := d.Preload("User").Preload("FieldType").Preload("Users")
+	query := d.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users")
 
 	switch user.Role.Name {
 
@@ -168,7 +168,7 @@ func findFields(ctx context.Context, user *db.User, ownerID *int, fieldTypeID *i
 	l := pipeline.MustLogger(ctx)
 
 	dbFields := []db.Field{}
-	query := d.Preload("User").Preload("FieldType").Preload("Users")
+	query := d.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users")
 
 	switch user.Role.Name {
 
