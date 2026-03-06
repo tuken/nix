@@ -237,7 +237,7 @@ func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, en
 		query = query.Where("work_reports.work_type_id = ?", *workTypeID)
 	}
 
-	if err := query.Find(&dbWorkReports).Error; err != nil {
+	if err := query.Where("work_date BETWEEN ? AND ?", startDate, endDate).Find(&dbWorkReports).Error; err != nil {
 
 		l.Errorw("Error work_reports", "user_id", user.ID, "role", user.Role.Name, "error", err)
 		return nil, err
