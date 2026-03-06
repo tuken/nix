@@ -107,6 +107,7 @@ type WorkReport struct {
 	FieldID       uint            `gorm:"not null;comment:'圃場ID（fields.id）'"`
 	Field         *Field          `gorm:"foreignKey:FieldID;references:ID;"`
 	WorkDate      time.Time       `gorm:"not null;comment:'作業日'"`
+	WorkHours     sql.NullFloat64 `gorm:"type:decimal(3,1);comment:'作業時間（時間単位）'"`
 	WorkTypeID    uint            `gorm:"not null;comment:'作業タイプID（work_types.id）'"`
 	WorkType      *WorkType       `gorm:"foreignKey:WorkTypeID;references:ID;"`
 	CropVarietyID uint            `gorm:"not null;comment:'品種ID（crop_varieties.id）'"`
