@@ -31,6 +31,7 @@ input CreateUserInput {
   gender: String!
   birthday: Date!
   note: String!
+  fieldIDs: [ID!]
 }
 
 extend type Query {
