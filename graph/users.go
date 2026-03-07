@@ -2,9 +2,11 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -65,6 +67,46 @@ func createUser(ctx context.Context, usr *db.User, input model.CreateUserInput) 
 	dbUser := db.User{}
 	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&dbUser, newUser.ID).Error; err != nil {
 		return nil, fmt.Errorf("error fetch users: %w", err)
+	}
+
+	user := model.User{}
+	copier.Copy(&user, &dbUser)
+
+	return &user, nil
+}
+
+func getUser(ctx context.Context, usr *db.User, id int) (*model.User, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbUser := db.User{}
+	query := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Where("users.org_id = ?", usr.OrgID)
+
+	case "owner":
+		query = query.Where("users.id = ? OR users.parent_id = ?", usr.ID, usr.ID)
+
+	case "worker":
+		query = query.Where("users.parent_id = ?", usr.ID)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	if err := query.First(&dbUser, id).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No users", "id", id, "user_id", usr.ID)
+			return nil, nil
+		} else {
+			l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", err)
+			return nil, err
+		}
 	}
 
 	user := model.User{}
