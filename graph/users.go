@@ -155,3 +155,46 @@ func listUsers(ctx context.Context, usr *db.User) ([]*model.User, error) {
 
 	return users, nil
 }
+
+func findUsers(ctx context.Context, usr *db.User, contains string) ([]*model.User, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbUsers := []db.User{}
+	query := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Where("users.org_id = ? AND users.role_id IN (?)", usr.OrgID, []uint{2, 3, 4})
+
+	case "owner":
+		query = query.Where("users.parent_id = ?", usr.ID)
+
+	case "worker":
+		return nil, fmt.Errorf("forbidden operation by worker")
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	query = query.Where("users.first_name LIKE %?% OR users.last_name LIKE %?% OR users.email LIKE %?%", contains, contains, contains)
+
+	if err := query.Find(&dbUsers).Error; err != nil {
+		l.Errorw("Error users", "user_id", usr.ID, "role", usr.Role.Name, "error", err)
+		return nil, err
+	}
+
+	users := []*model.User{}
+
+	for _, dbu := range dbUsers {
+
+		u := model.User{}
+		copier.Copy(&u, &dbu)
+
+		users = append(users, &u)
+	}
+
+	return users, nil
+}
