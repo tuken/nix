@@ -156,7 +156,7 @@ func listUsers(ctx context.Context, usr *db.User) ([]*model.User, error) {
 	return users, nil
 }
 
-func findUsers(ctx context.Context, usr *db.User, contains string) ([]*model.User, error) {
+func findUsers(ctx context.Context, usr *db.User, roleID *int, contains *string) ([]*model.User, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
@@ -179,7 +179,13 @@ func findUsers(ctx context.Context, usr *db.User, contains string) ([]*model.Use
 		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
-	query = query.Where("users.first_name LIKE %?% OR users.last_name LIKE %?% OR users.email LIKE %?%", contains, contains, contains)
+	if roleID != nil {
+		query = query.Where("users.role_id = ?", *roleID)
+	}
+
+	if contains != nil {
+		query = query.Where("users.first_name LIKE %?% OR users.last_name LIKE %?% OR users.email LIKE %?%", *contains, *contains, *contains)
+	}
 
 	if err := query.Find(&dbUsers).Error; err != nil {
 		l.Errorw("Error users", "user_id", usr.ID, "role", usr.Role.Name, "error", err)
