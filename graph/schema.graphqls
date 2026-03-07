@@ -2,6 +2,10 @@
 #
 # https://gqlgen.com/getting-started/
 
+scalar Date
+scalar Time
+scalar Upload
+
 type Org {
   id: ID!
   name: String!
