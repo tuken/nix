@@ -59,9 +59,33 @@ func createUser(ctx context.Context, usr *db.User, input model.CreateUserInput) 
 		newUser.FarmName.Scan(*input.FarmName)
 	}
 
-	if err := d.Create(newUser).Error; err != nil {
-		l.Errorw("Error insert users", "data", newUser, "error", err)
-		return nil, fmt.Errorf("error insert users: %w", err)
+	if err := d.Transaction(func(tx *gorm.DB) error {
+
+		if e := tx.Create(newUser).Error; e != nil {
+			return fmt.Errorf("error insert users: %w", e)
+		}
+
+		if len(input.FieldIDs) > 0 {
+
+			fus := []db.FieldUser{}
+
+			for _, fid := range input.FieldIDs {
+
+				fus = append(fus, db.FieldUser{
+					UserID:  newUser.ID,
+					FieldID: uint(fid),
+				})
+			}
+
+			if e := tx.Create(&fus).Error; e != nil {
+				return fmt.Errorf("error insert field_users: %w", e)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		l.Errorw("Error transaction create user", "data", newUser, "error", err)
+		return nil, err
 	}
 
 	dbUser := db.User{}
