@@ -64,3 +64,20 @@ func (r *queryResolver) ListUsersWithUserID(ctx context.Context, userID int) ([]
 
 	return listUsers(ctx, &user)
 }
+
+// FindUsers is the resolver for the findUsers field.
+func (r *queryResolver) FindUsers(ctx context.Context, contains string) ([]*model.User, error) {
+	return findUsers(ctx, pipeline.MustUser(ctx), contains)
+}
+
+// FindUsersWithUserID is the resolver for the findUsersWithUserID field.
+func (r *queryResolver) FindUsersWithUserID(ctx context.Context, userID int, contains string) ([]*model.User, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return findUsers(ctx, &user, contains)
+}
