@@ -184,7 +184,8 @@ func findUsers(ctx context.Context, usr *db.User, roleID *int, contains *string)
 	}
 
 	if contains != nil {
-		query = query.Where("users.first_name LIKE %?% OR users.last_name LIKE %?% OR users.email LIKE %?%", *contains, *contains, *contains)
+		str := fmt.Sprintf("%%%s%%", *contains)
+		query = query.Where("users.first_name LIKE ? OR users.last_name LIKE ? OR users.email LIKE ?", str, str, str)
 	}
 
 	if err := query.Find(&dbUsers).Error; err != nil {
