@@ -38,7 +38,8 @@ extend type Query {
   getUserWithUserID(userID: ID!): User
   listUsers: [User!]!
   listUsersWithUserID(userID: ID!): [User!]!
-}
+  findUsers(contains: String!): [User!]!
+  findUsersWithUserID(userID: ID!, contains: String!): [User!]!}
 
 extend type Mutation {
   createUser(input: CreateUserInput!): User!
