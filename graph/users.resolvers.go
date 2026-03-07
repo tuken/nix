@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/pipeline"
@@ -32,21 +31,6 @@ func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int,
 	return createUser(ctx, &user, input)
 }
 
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	d := pipeline.MustDB(ctx)
-
-	dbUsers := []db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").Find(&dbUsers).Error; err != nil {
-		return nil, err
-	}
-
-	users := []*model.User{}
-	copier.Copy(&users, &dbUsers)
-
-	return users, nil
-}
-
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
 	return getUser(ctx, pipeline.MustUser(ctx), id)
@@ -62,4 +46,21 @@ func (r *queryResolver) GetUserWithUserID(ctx context.Context, userID int) (*mod
 	}
 
 	return getUser(ctx, &user, userID)
+}
+
+// ListUsers is the resolver for the listUsers field.
+func (r *queryResolver) ListUsers(ctx context.Context) ([]*model.User, error) {
+	return listUsers(ctx, pipeline.MustUser(ctx))
+}
+
+// ListUsersWithUserID is the resolver for the listUsersWithUserID field.
+func (r *queryResolver) ListUsersWithUserID(ctx context.Context, userID int) ([]*model.User, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return listUsers(ctx, &user)
 }
