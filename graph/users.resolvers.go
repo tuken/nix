@@ -49,15 +49,17 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
+	return getUser(ctx, pipeline.MustUser(ctx), id)
+}
+
+// GetUserWithUserID is the resolver for the getUserWithUserID field.
+func (r *queryResolver) GetUserWithUserID(ctx context.Context, userID int) (*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
-	dbUser := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").Last(&dbUser, id).Error; err != nil {
-		return nil, err
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
-	user := model.User{}
-	copier.Copy(&user, &dbUser)
-
-	return &user, nil
+	return getUser(ctx, &user, userID)
 }
