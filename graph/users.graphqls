@@ -34,12 +34,13 @@ input CreateUserInput {
 }
 
 extend type Query {
-  users: [User!]!
   getUser(id: ID!): User
-  getUserWithUserID(userID: Int!): User
+  getUserWithUserID(userID: ID!): User
+  listUsers: [User!]!
+  listUsersWithUserID(userID: ID!): [User!]!
 }
 
 extend type Mutation {
   createUser(input: CreateUserInput!): User!
-  createUserWithUserID(userID: Int!, input: CreateUserInput!): User!
+  createUserWithUserID(userID: ID!, input: CreateUserInput!): User!
 }
