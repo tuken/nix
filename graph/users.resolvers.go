@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -16,40 +17,19 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
+	return createUser(ctx, pipeline.MustUser(ctx), input)
+}
+
+// CreateUserWithUserID is the resolver for the createUserWithUserID field.
+func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int, input model.CreateUserInput) (*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
-	newUser := &db.User{
-		OrgID:      uint(input.OrgID),
-		RoleID:     uint(input.RoleID),
-		Email:      input.Email,
-		Password:   input.Password,
-		PostalCode: input.PostalCode,
-		Address:    input.Address,
-		// Birthday:   input.Birthday,
-		Note: input.Note,
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
 	}
 
-	if input.ParentID != nil {
-		newUser.ParentID.Scan(*input.ParentID)
-	}
-
-	if input.FarmName != nil {
-		newUser.FarmName.Scan(*input.FarmName)
-	}
-
-	if err := d.Create(newUser).Error; err != nil {
-		return nil, err
-	}
-
-	dbUser := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").First(&dbUser, newUser.ID).Error; err != nil {
-		return nil, err
-	}
-
-	user := model.User{}
-	copier.Copy(&user, &dbUser)
-
-	return &user, nil
+	return createUser(ctx, &user, input)
 }
 
 // Users is the resolver for the users field.
@@ -57,7 +37,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
 	dbUsers := []db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Find(&dbUsers).Error; err != nil {
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").Find(&dbUsers).Error; err != nil {
 		return nil, err
 	}
 
@@ -72,7 +52,7 @@ func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error
 	d := pipeline.MustDB(ctx)
 
 	dbUser := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Last(&dbUser, id).Error; err != nil {
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").Last(&dbUser, id).Error; err != nil {
 		return nil, err
 	}
 
