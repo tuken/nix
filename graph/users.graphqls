@@ -19,7 +19,6 @@ type User {
 }
 
 input CreateUserInput {
-  orgID: Int!
   parentID: Int
   roleID: Int!
   email: String!
@@ -30,13 +29,14 @@ input CreateUserInput {
   postalCode: String!
   address: String!
   gender: String!
-  birthday: String!
+  birthday: Date!
   note: String!
 }
 
 extend type Query {
   users: [User!]!
-  getUser(id: ID!): User!
+  getUser(id: ID!): User
+  getUserWithUserID(userID: Int!): User
 }
 
 extend type Mutation {
