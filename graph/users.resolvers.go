@@ -66,12 +66,12 @@ func (r *queryResolver) ListUsersWithUserID(ctx context.Context, userID int) ([]
 }
 
 // FindUsers is the resolver for the findUsers field.
-func (r *queryResolver) FindUsers(ctx context.Context, contains string) ([]*model.User, error) {
+func (r *queryResolver) FindUsers(ctx context.Context, roleID *int, contains *string) ([]*model.User, error) {
 	return findUsers(ctx, pipeline.MustUser(ctx), contains)
 }
 
 // FindUsersWithUserID is the resolver for the findUsersWithUserID field.
-func (r *queryResolver) FindUsersWithUserID(ctx context.Context, userID int, contains string) ([]*model.User, error) {
+func (r *queryResolver) FindUsersWithUserID(ctx context.Context, userID int, roleID *int, contains *string) ([]*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
