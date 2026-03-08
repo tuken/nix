@@ -33,6 +33,23 @@ func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userI
 	return createWorkReport(ctx, &user, input)
 }
 
+// UpdateWorkReport is the resolver for the updateWorkReport field.
+func (r *mutationResolver) UpdateWorkReport(ctx context.Context, id int, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
+	return updateWorkReport(ctx, pipeline.MustUser(ctx), uint(id), input)
+}
+
+// UpdateWorkReportWithUserID is the resolver for the updateWorkReportWithUserID field.
+func (r *mutationResolver) UpdateWorkReportWithUserID(ctx context.Context, userID int, id int, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return updateWorkReport(ctx, &user, uint(id), input)
+}
+
 // WorkTypes is the resolver for the workTypes field.
 func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error) {
 	d := pipeline.MustDB(ctx)
