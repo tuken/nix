@@ -34,6 +34,19 @@ input CreateUserInput {
   fieldIDs: [ID!]
 }
 
+input UpdateUserInput {
+  email: String
+  password: String
+  farmName: String
+  firstName: String
+  lastName: String
+  postalCode: String
+  address: String
+  gender: String
+  birthday: Date
+  note: String
+}
+
 extend type Query {
   getUser(id: ID!): User
   getUserWithUserID(userID: ID!): User
@@ -45,4 +58,6 @@ extend type Query {
 extend type Mutation {
   createUser(input: CreateUserInput!): User!
   createUserWithUserID(userID: ID!, input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  updateUserWithUserID(userID: ID!, id: ID!, input: UpdateUserInput!): User!
 }
