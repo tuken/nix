@@ -78,7 +78,7 @@ func createWorkReport(ctx context.Context, user *db.User, input model.CreateWork
 	return &workReport, nil
 }
 
-func (r *mutationResolver) updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
+func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
