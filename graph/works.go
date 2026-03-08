@@ -33,6 +33,8 @@ func createWorkReport(ctx context.Context, user *db.User, input model.CreateWork
 		IsImage:       isImage,
 	}
 
+	newWorkReport.WorkHours.Scan(input.WorkHours)
+
 	if err := d.Create(newWorkReport).Error; err != nil {
 		l.Errorw("Error insert work_reports", "data", newWorkReport, "error", err)
 		return nil, err
