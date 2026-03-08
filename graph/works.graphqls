@@ -28,6 +28,17 @@ input CreateWorkReportInput {
   image: Upload
 }
 
+input UpdateWorkReportInput {
+  fieldID: ID
+  workDate: Date
+  workHours: Float
+  workTypeID: ID
+  cropVarietyID: ID
+  weatherCode: Int
+  workDetail: String
+  image: Upload
+}
+
 extend type Query {
   workTypes: [WorkType!]!
   getWorkReport(id: ID!): WorkReport
@@ -41,4 +52,6 @@ extend type Query {
 extend type Mutation {
   createWorkReport(input: CreateWorkReportInput!): WorkReport!
   createWorkReportWithUserID(userID: Int!, input: CreateWorkReportInput!): WorkReport!
+  updateWorkReport(id: ID!, input: UpdateWorkReportInput!): WorkReport!
+  updateWorkReportWithUserID(userID: Int!, id: ID!, input: UpdateWorkReportInput!): WorkReport!
 }
