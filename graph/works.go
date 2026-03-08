@@ -78,6 +78,118 @@ func createWorkReport(ctx context.Context, user *db.User, input model.CreateWork
 	return &workReport, nil
 }
 
+func (r *mutationResolver) updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbWorkReport := db.WorkReport{}
+	query := d
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", usr.OrgID)
+
+	case "owner":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.user_id = ?", usr.ID)
+
+	case "worker":
+		fieldIDs := []uint{}
+		for _, f := range usr.Fields {
+			fieldIDs = append(fieldIDs, f.ID)
+		}
+
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.id IN (?)", fieldIDs)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	if err := query.First(&dbWorkReport, id).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No work_reports", "id", id, "user_id", usr.ID)
+			return nil, nil
+		} else {
+			l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", err)
+			return nil, err
+		}
+	}
+
+	if input.FieldID != nil {
+		dbWorkReport.FieldID = uint(*input.FieldID)
+	}
+
+	if input.WorkDate != nil {
+		dbWorkReport.WorkDate = *input.WorkDate
+	}
+
+	if input.WorkHours != nil {
+		dbWorkReport.WorkHours.Scan(*input.WorkHours)
+	}
+
+	if input.WorkTypeID != nil {
+		dbWorkReport.WorkTypeID = uint(*input.WorkTypeID)
+	}
+
+	if input.CropVarietyID != nil {
+		dbWorkReport.CropVarietyID = uint(*input.CropVarietyID)
+	}
+
+	if input.WeatherCode != nil {
+		dbWorkReport.WeatherCode = uint(*input.WeatherCode)
+	}
+
+	if input.WorkDetail != nil {
+		dbWorkReport.WorkDetail = *input.WorkDetail
+	}
+
+	dbWorkReport.IsImage = input.Image != nil
+
+	if err := d.Save(&dbWorkReport).Error; err != nil {
+		l.Errorw("Error update work_reports", "id", id, "data", dbWorkReport, "error", err)
+		return nil, err
+	}
+
+	s3 := aws.NewS3Client()
+
+	if input.Image != nil {
+
+		l.Infow("Upload", "filename", input.Image.Filename, "size", input.Image.Size, "mime", input.Image.ContentType)
+
+		key := fmt.Sprintf("WorkReports/%d.jpg", id)
+
+		if err := s3.Upload(input.Image.File, conf.S3BucketName, key, input.Image.ContentType); err != nil {
+
+			d.Where("id = ?", id).Update("is_image", false)
+
+			l.Errorw("Error upload s3 object", "key", key, "mime", input.Image.ContentType, "error", err)
+			return nil, err
+		}
+	}
+
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&dbWorkReport, id).Error; err != nil {
+		return nil, err
+	}
+
+	workReport := model.WorkReport{}
+	copier.Copy(&workReport, &dbWorkReport)
+
+	if dbWorkReport.IsImage {
+
+		url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", id))
+		if err != nil {
+			l.Errorw("Error get signed URL", "key", fmt.Sprintf("WorkReports/%d.jpg", id), "error", err)
+			return nil, err
+		}
+
+		workReport.ImageURL = &url
+	}
+
+	return &workReport, nil
+}
+
 func getWorkReport(ctx context.Context, user *db.User, id int) (*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
