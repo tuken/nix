@@ -99,6 +99,101 @@ func createUser(ctx context.Context, usr *db.User, input model.CreateUserInput) 
 	return &user, nil
 }
 
+func updateUser(ctx context.Context, usr *db.User, id uint, input model.UpdateUserInput) (*model.User, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbUser := db.User{}
+	query := d
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Where("users.org_id = ? AND users.role_id IN (?)", usr.OrgID, []uint{2, 3, 4})
+
+	case "owner":
+		query = query.Where("users.parent_id = ?", usr.ID)
+
+	case "worker":
+		query = query.Where("users.id = ?", usr.ID)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	if err := query.First(&dbUser, id).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No users", "id", id, "user_id", usr.ID)
+			return nil, nil
+		} else {
+			l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", err)
+			return nil, err
+		}
+	}
+
+	if input.Email != nil {
+		dbUser.Email = *input.Email
+	}
+
+	if input.Password != nil {
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(*input.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("error hash password: %w", err)
+		}
+
+		dbUser.Password = string(hash)
+	}
+
+	if input.FarmName != nil {
+		dbUser.FarmName.Scan(*input.FarmName)
+	}
+
+	if input.FirstName != nil {
+		dbUser.FirstName = *input.FirstName
+	}
+
+	if input.LastName != nil {
+		dbUser.LastName = *input.LastName
+	}
+
+	if input.PostalCode != nil {
+		dbUser.PostalCode = *input.PostalCode
+	}
+
+	if input.Address != nil {
+		dbUser.Address = *input.Address
+	}
+
+	if input.Gender != nil {
+		dbUser.Gender = *input.Gender
+	}
+
+	if input.Birthday != nil {
+		dbUser.Birthday = *input.Birthday
+	}
+
+	if input.Note != nil {
+		dbUser.Note = *input.Note
+	}
+
+	if err := d.Save(&dbUser).Error; err != nil {
+		l.Errorw("Error update users", "id", id, "data", dbUser, "error", err)
+		return nil, err
+	}
+
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&dbUser, id).Error; err != nil {
+		return nil, err
+	}
+
+	user := model.User{}
+	copier.Copy(&user, &dbUser)
+
+	return &user, nil
+}
+
 func getUser(ctx context.Context, usr *db.User, id int) (*model.User, error) {
 
 	d := pipeline.MustDB(ctx)
