@@ -65,3 +65,18 @@ func (c S3Client) Upload(obj io.Reader, bucket, key, mime string) error {
 
 	return nil
 }
+
+// Delete 指定されたバケットのキーオブジェクトを削除する
+func (c S3Client) Delete(bucket, key string) error {
+
+	input := s3.DeleteObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}
+	_, err := c.client.DeleteObject(c.ctx, &input)
+	if err != nil {
+		return fmt.Errorf("error delete s3 (bucket=%s, key=%s): %v", bucket, key, err)
+	}
+
+	return nil
+}
