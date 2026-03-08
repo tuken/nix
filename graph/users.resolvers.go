@@ -31,6 +31,23 @@ func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int,
 	return createUser(ctx, &user, input)
 }
 
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input model.UpdateUserInput) (*model.User, error) {
+	return updateUser(ctx, pipeline.MustUser(ctx), uint(id), input)
+}
+
+// UpdateUserWithUserID is the resolver for the updateUserWithUserID field.
+func (r *mutationResolver) UpdateUserWithUserID(ctx context.Context, userID int, id int, input model.UpdateUserInput) (*model.User, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return updateUser(ctx, &user, uint(id), input)
+}
+
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
 	return getUser(ctx, pipeline.MustUser(ctx), id)
