@@ -198,7 +198,61 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 	return &workReport, nil
 }
 
-func getWorkReport(ctx context.Context, user *db.User, id int) (*model.WorkReport, error) {
+func deleteWorkReport(ctx context.Context, usr *db.User, id uint) (*model.WorkReport, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbWorkReport := db.WorkReport{}
+	query := dbWorkReport.Preload(d)
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", usr.OrgID)
+
+	case "owner":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.user_id = ?", usr.ID)
+
+	case "worker":
+		fieldIDs := []uint{}
+		for _, f := range usr.Fields {
+			fieldIDs = append(fieldIDs, f.ID)
+		}
+
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.id IN (?)", fieldIDs)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	res := query.Delete(&dbWorkReport, id)
+	if res.Error != nil {
+		l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", res.Error)
+		return nil, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		l.Errorw("No work_reports", "id", id, "user_id", usr.ID)
+		return nil, nil
+	}
+
+	if dbWorkReport.IsImage {
+
+		s3 := aws.NewS3Client()
+
+		if err := s3.Delete(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", dbWorkReport.ID)); err != nil {
+			l.Warnw("Error delete s3 object", "key", fmt.Sprintf("WorkReports/%d.jpg", dbWorkReport.ID), "error", err)
+		}
+	}
+
+	workReport := model.WorkReport{}
+	copier.Copy(&workReport, &dbWorkReport)
+
+	return &workReport, nil
+}
+
+func getWorkReport(ctx context.Context, usr *db.User, id uint) (*model.WorkReport, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
@@ -206,33 +260,33 @@ func getWorkReport(ctx context.Context, user *db.User, id int) (*model.WorkRepor
 	dbWorkReport := db.WorkReport{}
 	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
 
-	switch user.Role.Name {
+	switch usr.Role.Name {
 
 	case "admin":
-		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", user.OrgID)
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", usr.OrgID)
 
 	case "owner":
-		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.user_id = ?", user.ID)
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.user_id = ?", usr.ID)
 
 	case "worker":
 		fieldIDs := []uint{}
-		for _, f := range user.Fields {
+		for _, f := range usr.Fields {
 			fieldIDs = append(fieldIDs, f.ID)
 		}
 
 		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id AND f.id IN (?)", fieldIDs)
 
 	default:
-		return nil, fmt.Errorf("unsupported role: %s", user.Role.Name)
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
 	if err := query.First(&dbWorkReport, id).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			l.Errorw("No work_reports", "id", id, "user_id", user.ID)
+			l.Errorw("No work_reports", "id", id, "user_id", usr.ID)
 			return nil, nil
 		} else {
-			l.Errorw("Error work_reports", "id", id, "user_id", user.ID, "error", err)
+			l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", err)
 			return nil, err
 		}
 	}
