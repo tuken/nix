@@ -25,6 +25,11 @@ func (r *mutationResolver) UpdateWorkReport(ctx context.Context, id int, input m
 	return updateWorkReport(ctx, pipeline.MustUser(ctx), uint(id), input)
 }
 
+// DeleteWorkReport is the resolver for the deleteWorkReport field.
+func (r *mutationResolver) DeleteWorkReport(ctx context.Context, id int) (*model.WorkReport, error) {
+	return deleteWorkReport(ctx, pipeline.MustUser(ctx), uint(id))
+}
+
 // WorkTypes is the resolver for the workTypes field.
 func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error) {
 	d := pipeline.MustDB(ctx)
@@ -42,7 +47,7 @@ func (r *queryResolver) WorkTypes(ctx context.Context) ([]*model.WorkType, error
 
 // GetWorkReport is the resolver for the getWorkReport field.
 func (r *queryResolver) GetWorkReport(ctx context.Context, id int) (*model.WorkReport, error) {
-	return getWorkReport(ctx, pipeline.MustUser(ctx), id)
+	return getWorkReport(ctx, pipeline.MustUser(ctx), uint(id))
 }
 
 // ListWorkReports is the resolver for the listWorkReports field.
@@ -54,62 +59,3 @@ func (r *queryResolver) ListWorkReports(ctx context.Context) ([]*model.WorkRepor
 func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
 	return findWorkReports(ctx, pipeline.MustUser(ctx), startDate, endDate, ownerID, fieldID, workTypeID)
 }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userID int, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return createWorkReport(ctx, &user, input)
-}
-func (r *mutationResolver) UpdateWorkReportWithUserID(ctx context.Context, userID int, id int, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return updateWorkReport(ctx, &user, uint(id), input)
-}
-func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int, id int) (*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return getWorkReport(ctx, &user, id)
-}
-func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID int) ([]*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return listWorkReports(ctx, &user)
-}
-func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID int, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return findWorkReports(ctx, &user, startDate, endDate, ownerID, fieldID, workTypeID)
-}
-*/
