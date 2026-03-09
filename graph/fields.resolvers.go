@@ -24,6 +24,11 @@ func (r *mutationResolver) UpdateField(ctx context.Context, id int, input model.
 	return updateField(ctx, pipeline.MustUser(ctx), uint(id), input)
 }
 
+// DeleteField is the resolver for the deleteField field.
+func (r *mutationResolver) DeleteField(ctx context.Context, id int) (*model.Field, error) {
+	return deleteField(ctx, pipeline.MustUser(ctx), uint(id))
+}
+
 // FieldTypes is the resolver for the fieldTypes field.
 func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, error) {
 	d := pipeline.MustDB(ctx)
@@ -56,7 +61,7 @@ func (r *queryResolver) FieldStates(ctx context.Context) ([]*model.FieldState, e
 
 // GetField is the resolver for the getField field.
 func (r *queryResolver) GetField(ctx context.Context, id int) (*model.Field, error) {
-	return getField(ctx, pipeline.MustUser(ctx), id)
+	return getField(ctx, pipeline.MustUser(ctx), uint(id))
 }
 
 // ListFields is the resolver for the listFields field.
