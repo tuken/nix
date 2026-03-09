@@ -42,6 +42,21 @@ input CreateFieldInput {
   note: String!
 }
 
+input UpdateFieldInput {
+  userID: ID
+  fieldTypeID: ID
+  fieldCode: String
+  name: String
+  latitude: Float
+  longitude: Float
+  elevation: Float
+  area: Float
+  fieldStateID: ID
+  postalCode: String
+  address: String
+  note: String
+}
+
 extend type Query {
   fieldTypes: [FieldType!]!
   fieldStates: [FieldState!]!
@@ -52,4 +67,5 @@ extend type Query {
 
 extend type Mutation {
   createField(input: CreateFieldInput!): Field!
+  updateField(id: ID!, input: UpdateFieldInput!): Field!
 }
