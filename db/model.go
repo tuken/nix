@@ -26,7 +26,7 @@ type Role struct {
 type User struct {
 	gorm.Model
 	OrgID       uint           `gorm:"not null;comment:'組織ID（orgs.id）'"`
-	Org         Org            `gorm:"foreignKey:OrgID;references:ID;"`
+	Org         *Org           `gorm:"foreignKey:OrgID;references:ID;"`
 	ParentID    sql.NullInt64  `gorm:"comment:'親ユーザーID（roleがadmin,ownerの場合はNULL）'"`
 	Parent      *User          `gorm:"foreignKey:ParentID;references:ID;"`
 	RoleID      uint           `gorm:"comment:'役割ID（roles.id）'"`
@@ -43,6 +43,10 @@ type User struct {
 	Note        string         `gorm:"comment:'備考'"`
 	LastLoginAt sql.NullTime   `gorm:"comment:'最終ログイン日時'"`
 	Fields      []*Field       `gorm:"many2many:field_users;joinForeignKey:UserID;joinReferences:FieldID"`
+}
+
+func (u *User) Preload(db *gorm.DB) *gorm.DB {
+	return db.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
 }
 
 type FieldType struct {
