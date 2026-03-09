@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/pipeline"
@@ -20,6 +21,11 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input model.UpdateUserInput) (*model.User, error) {
 	return updateUser(ctx, pipeline.MustUser(ctx), uint(id), input)
+}
+
+// DeleteUser is the resolver for the deleteUser field.
+func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
 }
 
 // GetUser is the resolver for the getUser field.
@@ -36,62 +42,3 @@ func (r *queryResolver) ListUsers(ctx context.Context) ([]*model.User, error) {
 func (r *queryResolver) FindUsers(ctx context.Context, roleID *int, contains *string) ([]*model.User, error) {
 	return findUsers(ctx, pipeline.MustUser(ctx), roleID, contains)
 }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int, input model.CreateUserInput) (*model.User, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return createUser(ctx, &user, input)
-}
-func (r *mutationResolver) UpdateUserWithUserID(ctx context.Context, userID int, id int, input model.UpdateUserInput) (*model.User, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return updateUser(ctx, &user, uint(id), input)
-}
-func (r *queryResolver) GetUserWithUserID(ctx context.Context, userID int) (*model.User, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return getUser(ctx, &user, userID)
-}
-func (r *queryResolver) ListUsersWithUserID(ctx context.Context, userID int) ([]*model.User, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return listUsers(ctx, &user)
-}
-func (r *queryResolver) FindUsersWithUserID(ctx context.Context, userID int, roleID *int, contains *string) ([]*model.User, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return findUsers(ctx, &user, roleID, contains)
-}
-*/
