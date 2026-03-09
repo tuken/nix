@@ -19,6 +19,11 @@ func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFi
 	return createField(ctx, pipeline.MustUser(ctx), input)
 }
 
+// UpdateField is the resolver for the updateField field.
+func (r *mutationResolver) UpdateField(ctx context.Context, id int, input model.UpdateFieldInput) (*model.Field, error) {
+	return updateField(ctx, pipeline.MustUser(ctx), uint(id), input)
+}
+
 // FieldTypes is the resolver for the fieldTypes field.
 func (r *queryResolver) FieldTypes(ctx context.Context) ([]*model.FieldType, error) {
 	d := pipeline.MustDB(ctx)
@@ -63,52 +68,3 @@ func (r *queryResolver) ListFields(ctx context.Context) ([]*model.Field, error) 
 func (r *queryResolver) FindFields(ctx context.Context, ownerID *int, fieldID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
 	return findFields(ctx, pipeline.MustUser(ctx), ownerID, fieldTypeID, fieldStateID)
 }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) CreateFieldWithUserID(ctx context.Context, userID int, input model.CreateFieldInput) (*model.Field, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return createField(ctx, &user, input)
-}
-func (r *queryResolver) GetFieldByUserID(ctx context.Context, userID int, id int) (*model.Field, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return getField(ctx, &user, id)
-}
-func (r *queryResolver) ListFieldsWithUserID(ctx context.Context, userID int) ([]*model.Field, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return listFields(ctx, &user)
-}
-func (r *queryResolver) FindFieldsWithUserID(ctx context.Context, userID int, ownerID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return findFields(ctx, &user, ownerID, fieldTypeID, fieldStateID)
-}
-*/
