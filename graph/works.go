@@ -177,14 +177,15 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 		}
 	}
 
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&dbWorkReport, id).Error; err != nil {
+	reWorkReport := db.WorkReport{}
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&reWorkReport, id).Error; err != nil {
 		return nil, err
 	}
 
 	workReport := model.WorkReport{}
-	copier.Copy(&workReport, &dbWorkReport)
+	copier.Copy(&workReport, &reWorkReport)
 
-	if dbWorkReport.IsImage {
+	if reWorkReport.IsImage {
 
 		url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", id))
 		if err != nil {
