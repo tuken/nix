@@ -49,4 +49,5 @@ extend type Query {
 extend type Mutation {
   createWorkReport(input: CreateWorkReportInput!): WorkReport!
   updateWorkReport(id: ID!, input: UpdateWorkReportInput!): WorkReport!
+  deleteWorkReport(id: ID!): WorkReport
 }
