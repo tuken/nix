@@ -46,14 +46,10 @@ extend type Query {
   fieldTypes: [FieldType!]!
   fieldStates: [FieldState!]!
   getField(id: ID!): Field
-  getFieldByUserID(userID: ID!, id: ID!): Field
   listFields: [Field!]!
-  listFieldsWithUserID(userID: ID!): [Field!]!
   findFields(ownerID: ID, fieldID: ID, fieldTypeID: ID, fieldStateID: ID): [Field!]!
-  findFieldsWithUserID(userID: ID!, ownerID: ID, fieldTypeID: ID, fieldStateID: ID): [Field!]!
 }
 
 extend type Mutation {
   createField(input: CreateFieldInput!): Field!
-  createFieldWithUserID(userID: ID!, input: CreateFieldInput!): Field!
 }

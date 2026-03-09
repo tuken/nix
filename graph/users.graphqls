@@ -49,15 +49,11 @@ input UpdateUserInput {
 
 extend type Query {
   getUser(id: ID!): User
-  getUserWithUserID(userID: ID!): User
   listUsers: [User!]!
-  listUsersWithUserID(userID: ID!): [User!]!
   findUsers(roleID: ID, contains: String): [User!]!
-  findUsersWithUserID(userID: ID!, roleID: ID, contains: String): [User!]!}
+}
 
 extend type Mutation {
   createUser(input: CreateUserInput!): User!
-  createUserWithUserID(userID: ID!, input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User!
-  updateUserWithUserID(userID: ID!, id: ID!, input: UpdateUserInput!): User!
 }

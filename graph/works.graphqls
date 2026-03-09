@@ -42,16 +42,11 @@ input UpdateWorkReportInput {
 extend type Query {
   workTypes: [WorkType!]!
   getWorkReport(id: ID!): WorkReport
-  getWorkReportWithUserID(userID: ID!, id: ID!): WorkReport
   listWorkReports: [WorkReport!]!
-  listWorkReportsWithUserID(userId: ID!): [WorkReport!]!
   findWorkReports(startDate: Date!, endDate: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
-  findWorkReportsWithUserID(userID: ID!, startDate: Date!, endDate: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
 }
 
 extend type Mutation {
   createWorkReport(input: CreateWorkReportInput!): WorkReport!
-  createWorkReportWithUserID(userID: Int!, input: CreateWorkReportInput!): WorkReport!
   updateWorkReport(id: ID!, input: UpdateWorkReportInput!): WorkReport!
-  updateWorkReportWithUserID(userID: Int!, id: ID!, input: UpdateWorkReportInput!): WorkReport!
 }

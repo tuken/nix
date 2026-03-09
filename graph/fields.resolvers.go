@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -18,18 +17,6 @@ import (
 // CreateField is the resolver for the createField field.
 func (r *mutationResolver) CreateField(ctx context.Context, input model.CreateFieldInput) (*model.Field, error) {
 	return createField(ctx, pipeline.MustUser(ctx), input)
-}
-
-// CreateFieldWithUserID is the resolver for the createFieldWithUserID field.
-func (r *mutationResolver) CreateFieldWithUserID(ctx context.Context, userID int, input model.CreateFieldInput) (*model.Field, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return createField(ctx, &user, input)
 }
 
 // FieldTypes is the resolver for the fieldTypes field.
@@ -67,7 +54,33 @@ func (r *queryResolver) GetField(ctx context.Context, id int) (*model.Field, err
 	return getField(ctx, pipeline.MustUser(ctx), id)
 }
 
-// GetFieldByUserID is the resolver for the getFieldByUserID field.
+// ListFields is the resolver for the listFields field.
+func (r *queryResolver) ListFields(ctx context.Context) ([]*model.Field, error) {
+	return listFields(ctx, pipeline.MustUser(ctx))
+}
+
+// FindFields is the resolver for the findFields field.
+func (r *queryResolver) FindFields(ctx context.Context, ownerID *int, fieldID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
+	return findFields(ctx, pipeline.MustUser(ctx), ownerID, fieldTypeID, fieldStateID)
+}
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *mutationResolver) CreateFieldWithUserID(ctx context.Context, userID int, input model.CreateFieldInput) (*model.Field, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return createField(ctx, &user, input)
+}
 func (r *queryResolver) GetFieldByUserID(ctx context.Context, userID int, id int) (*model.Field, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -78,13 +91,6 @@ func (r *queryResolver) GetFieldByUserID(ctx context.Context, userID int, id int
 
 	return getField(ctx, &user, id)
 }
-
-// ListFields is the resolver for the listFields field.
-func (r *queryResolver) ListFields(ctx context.Context) ([]*model.Field, error) {
-	return listFields(ctx, pipeline.MustUser(ctx))
-}
-
-// ListFieldsWithUserID is the resolver for the listFieldsWithUserID field.
 func (r *queryResolver) ListFieldsWithUserID(ctx context.Context, userID int) ([]*model.Field, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -95,13 +101,6 @@ func (r *queryResolver) ListFieldsWithUserID(ctx context.Context, userID int) ([
 
 	return listFields(ctx, &user)
 }
-
-// FindFields is the resolver for the findFields field.
-func (r *queryResolver) FindFields(ctx context.Context, ownerID *int, fieldID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
-	return findFields(ctx, pipeline.MustUser(ctx), ownerID, fieldTypeID, fieldStateID)
-}
-
-// FindFieldsWithUserID is the resolver for the findFieldsWithUserID field.
 func (r *queryResolver) FindFieldsWithUserID(ctx context.Context, userID int, ownerID *int, fieldTypeID *int, fieldStateID *int) ([]*model.Field, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -112,3 +111,4 @@ func (r *queryResolver) FindFieldsWithUserID(ctx context.Context, userID int, ow
 
 	return findFields(ctx, &user, ownerID, fieldTypeID, fieldStateID)
 }
+*/

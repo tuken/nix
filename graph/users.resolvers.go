@@ -7,9 +7,7 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/tuken/nix/db"
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/pipeline"
 )
@@ -19,8 +17,34 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateUse
 	return createUser(ctx, pipeline.MustUser(ctx), input)
 }
 
-// CreateUserWithUserID is the resolver for the createUserWithUserID field.
-func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int, input model.CreateUserInput) (*model.User, error) {
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input model.UpdateUserInput) (*model.User, error) {
+	return updateUser(ctx, pipeline.MustUser(ctx), uint(id), input)
+}
+
+// GetUser is the resolver for the getUser field.
+func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
+	return getUser(ctx, pipeline.MustUser(ctx), id)
+}
+
+// ListUsers is the resolver for the listUsers field.
+func (r *queryResolver) ListUsers(ctx context.Context) ([]*model.User, error) {
+	return listUsers(ctx, pipeline.MustUser(ctx))
+}
+
+// FindUsers is the resolver for the findUsers field.
+func (r *queryResolver) FindUsers(ctx context.Context, roleID *int, contains *string) ([]*model.User, error) {
+	return findUsers(ctx, pipeline.MustUser(ctx), roleID, contains)
+}
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int, input model.CreateUserInput) (*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
 	user := db.User{}
@@ -30,13 +54,6 @@ func (r *mutationResolver) CreateUserWithUserID(ctx context.Context, userID int,
 
 	return createUser(ctx, &user, input)
 }
-
-// UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input model.UpdateUserInput) (*model.User, error) {
-	return updateUser(ctx, pipeline.MustUser(ctx), uint(id), input)
-}
-
-// UpdateUserWithUserID is the resolver for the updateUserWithUserID field.
 func (r *mutationResolver) UpdateUserWithUserID(ctx context.Context, userID int, id int, input model.UpdateUserInput) (*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -47,13 +64,6 @@ func (r *mutationResolver) UpdateUserWithUserID(ctx context.Context, userID int,
 
 	return updateUser(ctx, &user, uint(id), input)
 }
-
-// GetUser is the resolver for the getUser field.
-func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
-	return getUser(ctx, pipeline.MustUser(ctx), id)
-}
-
-// GetUserWithUserID is the resolver for the getUserWithUserID field.
 func (r *queryResolver) GetUserWithUserID(ctx context.Context, userID int) (*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -64,13 +74,6 @@ func (r *queryResolver) GetUserWithUserID(ctx context.Context, userID int) (*mod
 
 	return getUser(ctx, &user, userID)
 }
-
-// ListUsers is the resolver for the listUsers field.
-func (r *queryResolver) ListUsers(ctx context.Context) ([]*model.User, error) {
-	return listUsers(ctx, pipeline.MustUser(ctx))
-}
-
-// ListUsersWithUserID is the resolver for the listUsersWithUserID field.
 func (r *queryResolver) ListUsersWithUserID(ctx context.Context, userID int) ([]*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -81,13 +84,6 @@ func (r *queryResolver) ListUsersWithUserID(ctx context.Context, userID int) ([]
 
 	return listUsers(ctx, &user)
 }
-
-// FindUsers is the resolver for the findUsers field.
-func (r *queryResolver) FindUsers(ctx context.Context, roleID *int, contains *string) ([]*model.User, error) {
-	return findUsers(ctx, pipeline.MustUser(ctx), roleID, contains)
-}
-
-// FindUsersWithUserID is the resolver for the findUsersWithUserID field.
 func (r *queryResolver) FindUsersWithUserID(ctx context.Context, userID int, roleID *int, contains *string) ([]*model.User, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -98,3 +94,4 @@ func (r *queryResolver) FindUsersWithUserID(ctx context.Context, userID int, rol
 
 	return findUsers(ctx, &user, roleID, contains)
 }
+*/

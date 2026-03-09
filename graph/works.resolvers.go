@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/copier"
@@ -21,33 +20,9 @@ func (r *mutationResolver) CreateWorkReport(ctx context.Context, input model.Cre
 	return createWorkReport(ctx, pipeline.MustUser(ctx), input)
 }
 
-// CreateWorkReportWithUserID is the resolver for the createWorkReportWithUserID field.
-func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userID int, input model.CreateWorkReportInput) (*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return createWorkReport(ctx, &user, input)
-}
-
 // UpdateWorkReport is the resolver for the updateWorkReport field.
 func (r *mutationResolver) UpdateWorkReport(ctx context.Context, id int, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
 	return updateWorkReport(ctx, pipeline.MustUser(ctx), uint(id), input)
-}
-
-// UpdateWorkReportWithUserID is the resolver for the updateWorkReportWithUserID field.
-func (r *mutationResolver) UpdateWorkReportWithUserID(ctx context.Context, userID int, id int, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
-	d := pipeline.MustDB(ctx)
-
-	user := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
-		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
-	}
-
-	return updateWorkReport(ctx, &user, uint(id), input)
 }
 
 // WorkTypes is the resolver for the workTypes field.
@@ -70,7 +45,43 @@ func (r *queryResolver) GetWorkReport(ctx context.Context, id int) (*model.WorkR
 	return getWorkReport(ctx, pipeline.MustUser(ctx), id)
 }
 
-// GetWorkReportWithUserID is the resolver for the getWorkReportWithUserID field.
+// ListWorkReports is the resolver for the listWorkReports field.
+func (r *queryResolver) ListWorkReports(ctx context.Context) ([]*model.WorkReport, error) {
+	return listWorkReports(ctx, pipeline.MustUser(ctx))
+}
+
+// FindWorkReports is the resolver for the findWorkReports field.
+func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
+	return findWorkReports(ctx, pipeline.MustUser(ctx), startDate, endDate, ownerID, fieldID, workTypeID)
+}
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *mutationResolver) CreateWorkReportWithUserID(ctx context.Context, userID int, input model.CreateWorkReportInput) (*model.WorkReport, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return createWorkReport(ctx, &user, input)
+}
+func (r *mutationResolver) UpdateWorkReportWithUserID(ctx context.Context, userID int, id int, input model.UpdateWorkReportInput) (*model.WorkReport, error) {
+	d := pipeline.MustDB(ctx)
+
+	user := db.User{}
+	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&user, userID).Error; err != nil {
+		return nil, fmt.Errorf("ユーザーが見つかりませんでした。user_id: %d", userID)
+	}
+
+	return updateWorkReport(ctx, &user, uint(id), input)
+}
 func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int, id int) (*model.WorkReport, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -81,13 +92,6 @@ func (r *queryResolver) GetWorkReportWithUserID(ctx context.Context, userID int,
 
 	return getWorkReport(ctx, &user, id)
 }
-
-// ListWorkReports is the resolver for the listWorkReports field.
-func (r *queryResolver) ListWorkReports(ctx context.Context) ([]*model.WorkReport, error) {
-	return listWorkReports(ctx, pipeline.MustUser(ctx))
-}
-
-// ListWorkReportsWithUserID is the resolver for the listWorkReportsWithUserID field.
 func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID int) ([]*model.WorkReport, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -98,13 +102,6 @@ func (r *queryResolver) ListWorkReportsWithUserID(ctx context.Context, userID in
 
 	return listWorkReports(ctx, &user)
 }
-
-// FindWorkReports is the resolver for the findWorkReports field.
-func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
-	return findWorkReports(ctx, pipeline.MustUser(ctx), startDate, endDate, ownerID, fieldID, workTypeID)
-}
-
-// FindWorkReportsWithUserID is the resolver for the findWorkReportsWithUserID field.
 func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID int, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
 	d := pipeline.MustDB(ctx)
 
@@ -115,3 +112,4 @@ func (r *queryResolver) FindWorkReportsWithUserID(ctx context.Context, userID in
 
 	return findWorkReports(ctx, &user, startDate, endDate, ownerID, fieldID, workTypeID)
 }
+*/
