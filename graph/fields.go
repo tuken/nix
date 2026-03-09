@@ -173,7 +173,7 @@ func updateField(ctx context.Context, usr *db.User, id uint, input model.UpdateF
 	return &field, nil
 }
 
-func getField(ctx context.Context, user *db.User, id int) (*model.Field, error) {
+func deleteField(ctx context.Context, usr *db.User, id uint) (*model.Field, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
@@ -181,33 +181,78 @@ func getField(ctx context.Context, user *db.User, id int) (*model.Field, error) 
 	dbField := db.Field{}
 	query := dbField.Preload(d)
 
-	switch user.Role.Name {
+	switch usr.Role.Name {
 
 	case "admin":
-		query = query.Joins("INNER JOIN users u ON u.id = fields.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", user.OrgID)
+		query = query.Joins("INNER JOIN users u ON u.id = fields.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", usr.OrgID)
 
 	case "owner":
-		query = query.Where("fields.user_id = ?", user.ID)
+		query = query.Where("fields.user_id = ?", usr.ID)
 
 	case "worker":
 		fieldIDs := []uint{}
-		for _, f := range user.Fields {
+		for _, f := range usr.Fields {
 			fieldIDs = append(fieldIDs, f.ID)
 		}
 
 		query = query.Where("fields.id IN (?)", fieldIDs)
 
 	default:
-		return nil, fmt.Errorf("unsupported role: %s", user.Role.Name)
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	res := query.Delete(&dbField, id)
+	if res.Error != nil {
+		l.Errorw("Error fields", "id", id, "user_id", usr.ID, "error", res.Error)
+		return nil, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		l.Errorw("No fields", "id", id, "user_id", usr.ID)
+		return nil, nil
+	}
+
+	field := model.Field{}
+	copier.Copy(&field, &dbField)
+
+	return &field, nil
+}
+
+func getField(ctx context.Context, usr *db.User, id uint) (*model.Field, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbField := db.Field{}
+	query := dbField.Preload(d)
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Joins("INNER JOIN users u ON u.id = fields.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", usr.OrgID)
+
+	case "owner":
+		query = query.Where("fields.user_id = ?", usr.ID)
+
+	case "worker":
+		fieldIDs := []uint{}
+		for _, f := range usr.Fields {
+			fieldIDs = append(fieldIDs, f.ID)
+		}
+
+		query = query.Where("fields.id IN (?)", fieldIDs)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
 	if err := query.First(&dbField, id).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			l.Errorw("No fields", "id", id, "user_id", user.ID)
+			l.Errorw("No fields", "id", id, "user_id", usr.ID)
 			return nil, nil
 		} else {
-			l.Errorw("Error fields", "id", id, "user_id", user.ID, "error", err)
+			l.Errorw("Error fields", "id", id, "user_id", usr.ID, "error", err)
 			return nil, err
 		}
 	}
