@@ -68,4 +68,5 @@ extend type Query {
 extend type Mutation {
   createField(input: CreateFieldInput!): Field!
   updateField(id: ID!, input: UpdateFieldInput!): Field!
+  deleteField(id: ID!): Field
 }
