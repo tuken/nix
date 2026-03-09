@@ -89,7 +89,7 @@ func createUser(ctx context.Context, usr *db.User, input model.CreateUserInput) 
 	}
 
 	dbUser := db.User{}
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&dbUser, newUser.ID).Error; err != nil {
+	if err := dbUser.Preload(d).First(&dbUser, newUser.ID).Error; err != nil {
 		return nil, fmt.Errorf("error fetch users: %w", err)
 	}
 
@@ -184,8 +184,48 @@ func updateUser(ctx context.Context, usr *db.User, id uint, input model.UpdateUs
 		return nil, err
 	}
 
-	if err := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields").First(&dbUser, id).Error; err != nil {
+	if err := dbUser.Preload(d).First(&dbUser, id).Error; err != nil {
 		return nil, err
+	}
+
+	user := model.User{}
+	copier.Copy(&user, &dbUser)
+
+	return &user, nil
+}
+
+func deleteUser(ctx context.Context, usr *db.User, id int) (*model.User, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	dbUser := db.User{}
+	query := d
+
+	switch usr.Role.Name {
+
+	case "admin":
+		query = query.Where("users.org_id = ? AND users.role_id IN (?)", usr.OrgID, []uint{2, 3, 4})
+
+	case "owner":
+		query = query.Where("users.parent_id = ?", usr.ID)
+
+	case "worker":
+		query = query.Where("users.id = ?", usr.ID)
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
+	}
+
+	res := query.Delete(&dbUser, id)
+	if res.Error != nil {
+		l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", res.Error)
+		return nil, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		l.Errorw("No users", "id", id, "user_id", usr.ID)
+		return nil, nil
 	}
 
 	user := model.User{}
@@ -200,7 +240,7 @@ func getUser(ctx context.Context, usr *db.User, id int) (*model.User, error) {
 	l := pipeline.MustLogger(ctx)
 
 	dbUser := db.User{}
-	query := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
+	query := dbUser.Preload(d)
 
 	switch usr.Role.Name {
 
@@ -240,7 +280,7 @@ func listUsers(ctx context.Context, usr *db.User) ([]*model.User, error) {
 	l := pipeline.MustLogger(ctx)
 
 	dbUsers := []db.User{}
-	query := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
+	query := (&db.User{}).Preload(d)
 
 	switch usr.Role.Name {
 
@@ -281,7 +321,7 @@ func findUsers(ctx context.Context, usr *db.User, roleID *int, contains *string)
 	l := pipeline.MustLogger(ctx)
 
 	dbUsers := []db.User{}
-	query := d.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
+	query := (&db.User{}).Preload(d)
 
 	switch usr.Role.Name {
 
