@@ -119,6 +119,8 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 		}
 	}
 
+	nowIsImage := dbWorkReport.IsImage
+
 	if input.FieldID != nil {
 		dbWorkReport.FieldID = uint(*input.FieldID)
 	}
@@ -147,7 +149,9 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 		dbWorkReport.WorkDetail = *input.WorkDetail
 	}
 
-	dbWorkReport.IsImage = input.Image != nil
+	if !nowIsImage {
+		dbWorkReport.IsImage = input.Image != nil
+	}
 
 	if err := d.Save(&dbWorkReport).Error; err != nil {
 		l.Errorw("Error update work_reports", "id", id, "data", dbWorkReport, "error", err)
@@ -164,7 +168,9 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 
 		if err := s3.Upload(input.Image.File, conf.S3BucketName, key, input.Image.ContentType); err != nil {
 
-			d.Where("id = ?", id).Update("is_image", false)
+			if !nowIsImage {
+				d.Where("id = ?", id).Update("is_image", false)
+			}
 
 			l.Errorw("Error upload s3 object", "key", key, "mime", input.Image.ContentType, "error", err)
 			return nil, err
