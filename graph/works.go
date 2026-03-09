@@ -59,7 +59,7 @@ func createWorkReport(ctx context.Context, user *db.User, input model.CreateWork
 	}
 
 	dbWorkReport := db.WorkReport{}
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&dbWorkReport, newWorkReport.ID).Error; err != nil {
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather").First(&dbWorkReport, newWorkReport.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -177,15 +177,14 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 		}
 	}
 
-	reWorkReport := db.WorkReport{}
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather").First(&reWorkReport, id).Error; err != nil {
+	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather").First(&dbWorkReport, id).Error; err != nil {
 		return nil, err
 	}
 
 	workReport := model.WorkReport{}
-	copier.Copy(&workReport, &reWorkReport)
+	copier.Copy(&workReport, &dbWorkReport)
 
-	if reWorkReport.IsImage {
+	if dbWorkReport.IsImage {
 
 		url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", id))
 		if err != nil {
@@ -205,7 +204,7 @@ func getWorkReport(ctx context.Context, user *db.User, id int) (*model.WorkRepor
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReport := db.WorkReport{}
-	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather")
+	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
 
 	switch user.Role.Name {
 
@@ -263,7 +262,7 @@ func listWorkReports(ctx context.Context, user *db.User) ([]*model.WorkReport, e
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReports := []db.WorkReport{}
-	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather")
+	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
 
 	switch user.Role.Name {
 
@@ -322,7 +321,7 @@ func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, en
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReports := []db.WorkReport{}
-	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("Weather")
+	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
 
 	switch user.Role.Name {
 
