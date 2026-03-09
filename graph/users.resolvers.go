@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tuken/nix/graph/model"
 	"github.com/tuken/nix/pipeline"
@@ -25,7 +24,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input model.U
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
+	return deleteUser(ctx, pipeline.MustUser(ctx), uint(id))
 }
 
 // GetUser is the resolver for the getUser field.
