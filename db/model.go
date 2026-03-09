@@ -85,6 +85,10 @@ type Field struct {
 	Users []*User `gorm:"many2many:field_users;joinForeignKey:FieldID;joinReferences:UserID"`
 }
 
+func (u *Field) Preload(db *gorm.DB) *gorm.DB {
+	return db.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users")
+}
+
 type FieldUser struct {
 	FieldID uint   `gorm:"not null;comment:'圃場ID（fields.id）'"`
 	Field   *Field `gorm:"foreignKey:FieldID"`
