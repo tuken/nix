@@ -194,7 +194,7 @@ func updateUser(ctx context.Context, usr *db.User, id uint, input model.UpdateUs
 	return &user, nil
 }
 
-func deleteUser(ctx context.Context, usr *db.User, id int) (*model.User, error) {
+func deleteUser(ctx context.Context, usr *db.User, id uint) (*model.User, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
