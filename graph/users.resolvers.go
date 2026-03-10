@@ -29,7 +29,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*model.User,
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
-	return getUser(ctx, pipeline.MustUser(ctx), id)
+	return getUser(ctx, pipeline.MustUser(ctx), uint(id))
 }
 
 // ListUsers is the resolver for the listUsers field.
