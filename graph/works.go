@@ -59,7 +59,7 @@ func createWorkReport(ctx context.Context, user *db.User, input model.CreateWork
 	}
 
 	dbWorkReport := db.WorkReport{}
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather").First(&dbWorkReport, newWorkReport.ID).Error; err != nil {
+	if err := dbWorkReport.Preload(d).First(&dbWorkReport, newWorkReport.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -177,7 +177,7 @@ func updateWorkReport(ctx context.Context, usr *db.User, id uint, input model.Up
 		}
 	}
 
-	if err := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather").First(&dbWorkReport, id).Error; err != nil {
+	if err := dbWorkReport.Preload(d).First(&dbWorkReport, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -263,7 +263,7 @@ func getWorkReport(ctx context.Context, usr *db.User, id uint) (*model.WorkRepor
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReport := db.WorkReport{}
-	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
+	query := dbWorkReport.Preload(d)
 
 	switch usr.Role.Name {
 
@@ -321,7 +321,7 @@ func listWorkReports(ctx context.Context, user *db.User) ([]*model.WorkReport, e
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReports := []db.WorkReport{}
-	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
+	query := (&db.WorkReport{}).Preload(d)
 
 	switch user.Role.Name {
 
@@ -380,7 +380,7 @@ func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, en
 	l := pipeline.MustLogger(ctx)
 
 	dbWorkReports := []db.WorkReport{}
-	query := d.Preload("User").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
+	query := (&db.WorkReport{}).Preload(d)
 
 	switch user.Role.Name {
 
@@ -417,6 +417,60 @@ func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, en
 	if err := query.Where("work_date BETWEEN DATE(?) AND DATE(?)", startDate.UTC(), endDate.UTC()).Find(&dbWorkReports).Error; err != nil {
 
 		l.Errorw("Error work_reports", "user_id", user.ID, "role", user.Role.Name, "error", err)
+		return nil, err
+	}
+
+	workReport := []*model.WorkReport{}
+
+	for _, dbwp := range dbWorkReports {
+
+		wp := model.WorkReport{}
+		copier.Copy(&wp, &dbwp)
+
+		if dbwp.IsImage {
+
+			s3 := aws.NewS3Client()
+
+			url, err := s3.GetSignedURL(conf.S3BucketName, fmt.Sprintf("WorkReports/%d.jpg", dbwp.ID))
+			if err != nil {
+				l.Errorw("Error get signed URL", "key", fmt.Sprintf("WorkReports/%d.jpg", dbwp.ID), "error", err)
+				return nil, err
+			}
+
+			wp.ImageURL = &url
+		}
+
+		workReport = append(workReport, &wp)
+	}
+
+	return workReport, nil
+}
+
+func latestWorkReports(ctx context.Context, user *db.User, count int) ([]*model.WorkReport, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	query := (&db.WorkReport{}).Preload(d)
+
+	switch user.Role.Name {
+
+	case "admin":
+		query = query.Joins("INNER JOIN fields f ON f.id = work_reports.field_id").Joins("INNER JOIN users u ON u.id = f.user_id").Joins("INNER JOIN orgs o ON o.id = u.org_id AND o.id = ?", user.OrgID)
+
+	case "owner":
+		return nil, fmt.Errorf("forbidden operation by owner")
+
+	case "worker":
+		return nil, fmt.Errorf("forbidden operation by worker")
+
+	default:
+		return nil, fmt.Errorf("unsupported role: %s", user.Role.Name)
+	}
+
+	dbWorkReports := []db.WorkReport{}
+	if err := query.Order("created_at DESC").Limit(count).Find(&dbWorkReports).Error; err != nil {
+		l.Errorw("Error work_reports", "error", err)
 		return nil, err
 	}
 
