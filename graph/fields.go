@@ -201,15 +201,20 @@ func deleteField(ctx context.Context, usr *db.User, id uint) (*model.Field, erro
 		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
-	res := query.Delete(&dbField, id)
-	if res.Error != nil {
-		l.Errorw("Error fields", "id", id, "user_id", usr.ID, "error", res.Error)
-		return nil, res.Error
+	if err := query.First(&dbField, id).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No fields", "id", id, "user_id", usr.ID)
+			return nil, nil
+		} else {
+			l.Errorw("Error fields", "id", id, "user_id", usr.ID, "error", err)
+			return nil, err
+		}
 	}
 
-	if res.RowsAffected == 0 {
-		l.Errorw("No fields", "id", id, "user_id", usr.ID)
-		return nil, nil
+	if err := query.Delete(&dbField, id).Error; err != nil {
+		l.Errorw("Error fields", "id", id, "user_id", usr.ID, "error", err)
+		return nil, err
 	}
 
 	field := model.Field{}

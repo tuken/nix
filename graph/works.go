@@ -226,15 +226,20 @@ func deleteWorkReport(ctx context.Context, usr *db.User, id uint) (*model.WorkRe
 		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
-	res := query.Delete(&dbWorkReport, id)
-	if res.Error != nil {
-		l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", res.Error)
-		return nil, res.Error
+	if err := query.First(&dbWorkReport, id).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No work_reports", "id", id, "user_id", usr.ID)
+			return nil, nil
+		} else {
+			l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", err)
+			return nil, err
+		}
 	}
 
-	if res.RowsAffected == 0 {
-		l.Errorw("No work_reports", "id", id, "user_id", usr.ID)
-		return nil, nil
+	if err := query.Delete(&dbWorkReport, id).Error; err != nil {
+		l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", err)
+		return nil, err
 	}
 
 	if dbWorkReport.IsImage {
