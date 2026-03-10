@@ -59,3 +59,8 @@ func (r *queryResolver) ListWorkReports(ctx context.Context) ([]*model.WorkRepor
 func (r *queryResolver) FindWorkReports(ctx context.Context, startDate time.Time, endDate time.Time, ownerID *int, fieldID *int, workTypeID *int) ([]*model.WorkReport, error) {
 	return findWorkReports(ctx, pipeline.MustUser(ctx), startDate, endDate, ownerID, fieldID, workTypeID)
 }
+
+// LatestWorkReports is the resolver for the latestWorkReports field.
+func (r *queryResolver) LatestWorkReports(ctx context.Context, count int) ([]*model.WorkReport, error) {
+	return latestWorkReports(ctx, pipeline.MustUser(ctx), count)
+}
