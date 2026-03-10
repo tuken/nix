@@ -217,15 +217,20 @@ func deleteUser(ctx context.Context, usr *db.User, id uint) (*model.User, error)
 		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
-	res := query.Delete(&dbUser, id)
-	if res.Error != nil {
-		l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", res.Error)
-		return nil, res.Error
+	if err := query.First(&dbUser, id).Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.Errorw("No users", "id", id, "user_id", usr.ID)
+			return nil, nil
+		} else {
+			l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", err)
+			return nil, err
+		}
 	}
 
-	if res.RowsAffected == 0 {
-		l.Errorw("No users", "id", id, "user_id", usr.ID)
-		return nil, nil
+	if err := query.Delete(&dbUser, id).Error; err != nil {
+		l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", err)
+		return nil, err
 	}
 
 	user := model.User{}
@@ -234,7 +239,7 @@ func deleteUser(ctx context.Context, usr *db.User, id uint) (*model.User, error)
 	return &user, nil
 }
 
-func getUser(ctx context.Context, usr *db.User, id int) (*model.User, error) {
+func getUser(ctx context.Context, usr *db.User, id uint) (*model.User, error) {
 
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
