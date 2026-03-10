@@ -32,7 +32,7 @@ func createField(ctx context.Context, user *db.User, input model.CreateFieldInpu
 	}
 
 	newField := &db.Field{
-		UserID:       user.ID,
+		UserID:       uint(input.UserID),
 		FieldTypeID:  uint(input.FieldTypeID),
 		Name:         input.Name,
 		Latitude:     input.Latitude,
