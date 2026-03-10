@@ -44,6 +44,7 @@ extend type Query {
   getWorkReport(id: ID!): WorkReport
   listWorkReports: [WorkReport!]!
   findWorkReports(startDate: Date!, endDate: Date!, ownerID: ID, fieldID: ID, workTypeID: ID): [WorkReport!]!
+  latestWorkReports(count: Int!): [WorkReport!]!
 }
 
 extend type Mutation {
