@@ -285,7 +285,7 @@ func getWorkReport(ctx context.Context, usr *db.User, id uint) (*model.WorkRepor
 		return nil, fmt.Errorf("unsupported role: %s", usr.Role.Name)
 	}
 
-	if err := query.First(&dbWorkReport, id).Error; err != nil {
+	if err := query.Order("work_date DESC").Order("id DESC").First(&dbWorkReport, id).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			l.Errorw("No work_reports", "id", id, "user_id", usr.ID)
@@ -343,7 +343,7 @@ func listWorkReports(ctx context.Context, user *db.User) ([]*model.WorkReport, e
 		return nil, fmt.Errorf("unsupported role: %s", user.Role.Name)
 	}
 
-	if err := query.Find(&dbWorkReports).Error; err != nil {
+	if err := query.Order("work_date DESC").Order("id DESC").Find(&dbWorkReports).Error; err != nil {
 		l.Errorw("Error work_reports", "user_id", user.ID, "role", user.Role.Name, "error", err)
 		return nil, err
 	}
@@ -414,7 +414,7 @@ func findWorkReports(ctx context.Context, user *db.User, startDate time.Time, en
 		query = query.Where("work_reports.work_type_id = ?", *workTypeID)
 	}
 
-	if err := query.Where("work_date BETWEEN DATE(?) AND DATE(?)", startDate.UTC(), endDate.UTC()).Find(&dbWorkReports).Error; err != nil {
+	if err := query.Where("work_date BETWEEN DATE(?) AND DATE(?)", startDate.UTC(), endDate.UTC()).Order("work_date DESC").Order("id DESC").Find(&dbWorkReports).Error; err != nil {
 
 		l.Errorw("Error work_reports", "user_id", user.ID, "role", user.Role.Name, "error", err)
 		return nil, err
@@ -469,7 +469,7 @@ func latestWorkReports(ctx context.Context, user *db.User, count int) ([]*model.
 	}
 
 	dbWorkReports := []db.WorkReport{}
-	if err := query.Order("created_at DESC").Limit(count).Find(&dbWorkReports).Error; err != nil {
+	if err := query.Order("work_date DESC").Order("id DESC").Limit(count).Find(&dbWorkReports).Error; err != nil {
 		l.Errorw("Error work_reports", "error", err)
 		return nil, err
 	}
