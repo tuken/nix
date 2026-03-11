@@ -212,7 +212,7 @@ func (r *queryResolver) WorkTypeSummary(ctx context.Context) ([]*model.WorkTypeS
 		db.WorkType
 	}{}
 
-	if err := d.Model(&db.WorkReport{}).Select("SUM(CASE WHEN work_date >= CURDATE() AND work_date < CURDATE() + INTERVAL 1 DAY THEN 1 ELSE 0 END) AS today, " + "SUM(CASE WHEN work_date >= CURDATE() - INTERVAL 1 DAY AND work_date < CURDATE() THEN 1 ELSE 0 END) AS yesterday, " + "SUM(CASE WHEN YEARWEEK(work_date, 0) = YEARWEEK(CURDATE(), 0) THEN 1 ELSE 0 END) AS this_week, " + "SUM(CASE WHEN YEARWEEK(work_date, 0) = YEARWEEK(CURDATE() - INTERVAL 7 DAY, 0) THEN 1 ELSE 0 END) AS last_week, " + "SUM(CASE WHEN YEAR(work_date) = YEAR(CURDATE()) AND MONTH(work_date) = MONTH(CURDATE()) THEN 1 ELSE 0 END) AS this_month, " + "wt.*").Joins("INNER JOIN work_types wt ON wt.id = work_reports.work_type_id").Group("wt.id").Order("wt.id").Find(&sums).Error; err != nil {
+	if err := d.Model(&db.WorkReport{}).Select("SUM(CASE WHEN work_date >= CURDATE() AND work_date < CURDATE() + INTERVAL 1 DAY THEN 1 ELSE 0 END) AS today, " + "SUM(CASE WHEN work_date >= CURDATE() - INTERVAL 1 DAY AND work_date < CURDATE() THEN 1 ELSE 0 END) AS yesterday, " + "SUM(CASE WHEN YEARWEEK(work_date, 0) = YEARWEEK(CURDATE(), 0) THEN 1 ELSE 0 END) AS this_week, " + "SUM(CASE WHEN YEARWEEK(work_date, 0) = YEARWEEK(CURDATE() - INTERVAL 7 DAY, 0) THEN 1 ELSE 0 END) AS last_week, " + "SUM(CASE WHEN YEAR(work_date) = YEAR(CURDATE()) AND MONTH(work_date) = MONTH(CURDATE()) THEN 1 ELSE 0 END) AS this_month, " + "wt.*").Joins("INNER JOIN work_types wt ON wt.id = work_reports.work_type_id").Group("wt.id").Order("today DESC").Order("wt.id").Find(&sums).Error; err != nil {
 		l.Errorw("Error work_reports", "error", err)
 		return nil, fmt.Errorf("error work_reports: %v", err)
 	}
