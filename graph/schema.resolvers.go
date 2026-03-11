@@ -198,6 +198,45 @@ func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitu
 	return result, nil
 }
 
+// WorkTypeSummary is the resolver for the workTypeSummary field.
+func (r *queryResolver) WorkTypeSummary(ctx context.Context) ([]*model.WorkTypeSummaryItem, error) {
+
+	d := pipeline.MustDB(ctx)
+	l := pipeline.MustLogger(ctx)
+
+	sams := []struct {
+		WorkTypeID uint
+		db.WorkType
+		Today     int
+		Yesterday int
+		ThisWeek  int
+		LastWeek  int
+		ThisMonth int
+	}{}
+
+	if err := d.Model(&db.WorkReport{}).Select("work_reports.work_type_id, work_types.*, " + "SUM(CASE WHEN work_date >= CURDATE() AND work_date < CURDATE() + INTERVAL 1 DAY THEN 1 ELSE 0 END) AS today, " + "SUM(CASE WHEN work_date >= CURDATE() - INTERVAL 1 DAY AND work_date < CURDATE() THEN 1 ELSE 0 END) AS yesterday, " + "SUM(CASE WHEN YEARWEEK(work_date, 0) = YEARWEEK(CURDATE(), 0) THEN 1 ELSE 0 END) AS this_week, " + "SUM(CASE WHEN YEARWEEK(work_date, 0) = YEARWEEK(CURDATE() - INTERVAL 7 DAY, 0) THEN 1 ELSE 0 END) AS last_week, " + "SUM(CASE WHEN YEAR(work_date) = YEAR(CURDATE()) AND MONTH(work_date) = MONTH(CURDATE()) THEN 1 ELSE 0 END) AS this_month").Joins("INNER JOIN work_types wt ON wt.id = work_reports.work_type_id").Group("work_reports.work_type_id").Order("work_reports.work_type_id").Find(&sams).Error; err != nil {
+		l.Errorw("Error work_reports", "error", err)
+		return nil, fmt.Errorf("error work_reports: %v", err)
+	}
+
+	items := make([]*model.WorkTypeSummaryItem, len(sams))
+
+	for _, sam := range sams {
+
+		i := model.WorkTypeSummaryItem{}
+		copier.Copy(&i.WorkType, &sam.WorkType)
+		i.Today = sam.Today
+		i.Yesterday = sam.Yesterday
+		i.ThisWeek = sam.ThisWeek
+		i.LastWeek = sam.LastWeek
+		i.ThisMonth = sam.ThisMonth
+
+		items = append(items, &i)
+	}
+
+	return items, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
