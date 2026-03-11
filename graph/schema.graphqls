@@ -48,6 +48,15 @@ type Forecast {
   weather: Weather!
 }
 
+type WorkTypeSummaryItem {
+  workType: WorkType!
+  today: Int!
+  yesterday: Int!
+  thisWeek: Int!
+  lastWeek: Int!
+  thisMonth: Int!
+}
+
 input CreateOrgInput {
   name: String!
   postalCode: String!
@@ -64,6 +73,7 @@ type Query {
   cropVarieties(itemID: ID!): [CropVariety!]!
   weathers: [Weather!]!
   forecasts(latitude: Float!, longitude: Float!, days: Int!): [Forecast!]!
+  workTypeSummary: [WorkTypeSummaryItem!]!
 }
 
 type Mutation {
