@@ -200,7 +200,6 @@ func (r *queryResolver) Forecasts(ctx context.Context, latitude float64, longitu
 
 // WorkTypeSummary is the resolver for the workTypeSummary field.
 func (r *queryResolver) WorkTypeSummary(ctx context.Context) ([]*model.WorkTypeSummaryItem, error) {
-
 	d := pipeline.MustDB(ctx)
 	l := pipeline.MustLogger(ctx)
 
