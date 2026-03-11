@@ -218,7 +218,7 @@ func (r *queryResolver) WorkTypeSummary(ctx context.Context) ([]*model.WorkTypeS
 		return nil, fmt.Errorf("error work_reports: %v", err)
 	}
 
-	items := make([]*model.WorkTypeSummaryItem, len(sums))
+	items := []*model.WorkTypeSummaryItem{}
 
 	for _, sam := range sums {
 
