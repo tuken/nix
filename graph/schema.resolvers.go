@@ -221,7 +221,7 @@ func (r *queryResolver) WorkTypeSummary(ctx context.Context) ([]*model.WorkTypeS
 
 	for _, sam := range sums {
 
-		i := model.WorkTypeSummaryItem{}
+		i := model.WorkTypeSummaryItem{WorkType: &model.WorkType{}}
 		copier.Copy(i.WorkType, &sam.WorkType)
 		i.Today = sam.Today
 		i.Yesterday = sam.Yesterday
