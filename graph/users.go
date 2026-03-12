@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/jinzhu/copier"
 	"github.com/tuken/nix/db"
@@ -179,8 +180,27 @@ func updateUser(ctx context.Context, usr *db.User, id uint, input model.UpdateUs
 		dbUser.Note = *input.Note
 	}
 
-	if err := d.Save(&dbUser).Error; err != nil {
-		l.Errorw("Error update users", "id", id, "data", dbUser, "error", err)
+	if err := d.Transaction(func(tx *gorm.DB) error {
+
+		if input.FieldIDs != nil {
+
+			fields := []db.Field{}
+			if e := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id IN (?)", input.FieldIDs).Find(&fields).Error; e != nil {
+				return fmt.Errorf("error fields: %w", e)
+			}
+
+			if e := tx.Model(&dbUser).Association("Fields").Replace(fields); e != nil {
+				return fmt.Errorf("error replace field_users: %w", e)
+			}
+		}
+
+		if err := tx.Save(&dbUser).Error; err != nil {
+			return fmt.Errorf("error update users: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		l.Errorw("Error transaction update user", "data", dbUser, "error", err)
 		return nil, err
 	}
 
