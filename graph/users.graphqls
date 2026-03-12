@@ -31,7 +31,7 @@ input CreateUserInput {
   gender: String!
   birthday: Date!
   note: String!
-  fieldIDs: [ID!]
+  fieldIDs: [ID!]!
 }
 
 input UpdateUserInput {
@@ -45,6 +45,7 @@ input UpdateUserInput {
   gender: String
   birthday: Date
   note: String
+  fieldIDs: [ID!]
 }
 
 extend type Query {
