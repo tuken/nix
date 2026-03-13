@@ -140,7 +140,7 @@ type WorkReport struct {
 }
 
 func (w *WorkReport) Preload(db *gorm.DB) *gorm.DB {
-	return db.Preload("User").Preload("Users.Parent").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
+	return db.Preload("User").Preload("User.Parent").Preload("Field").Preload("WorkType").Preload("CropVariety").Preload("CropVariety.CropItem").Preload("Weather")
 }
 
 type Weather struct {
