@@ -49,6 +49,33 @@ func (u *User) Preload(db *gorm.DB) *gorm.DB {
 	return db.Preload("Org").Preload("Parent").Preload("Role").Preload("Fields")
 }
 
+func (u *User) BeforeDelete(tx *gorm.DB) error {
+
+	if !u.ParentID.Valid {
+
+		var fieldIDs []uint
+		if err := tx.Model(&Field{}).Where("user_id = ?", u.ID).Pluck("id", &fieldIDs).Error; err != nil {
+			return err
+		}
+
+		if len(fieldIDs) > 0 {
+
+			if err := tx.Delete(&WorkReport{}, "field_id IN (?)", fieldIDs).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Delete(&Field{}, "user_id = ?", u.ID).Error; err != nil {
+			return err
+		}
+
+		// 子Userを削除
+		return tx.Delete(&User{}, "parent_id = ?", u.ID).Error
+	}
+
+	return nil
+}
+
 type FieldType struct {
 	gorm.Model
 	Name      string `gorm:"not null;comment:'圃場タイプ名'"`
