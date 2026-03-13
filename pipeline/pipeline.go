@@ -64,10 +64,10 @@ func (p *Preprocessor) Pipeline(next http.Handler) http.Handler {
 		ctx := r.Context()
 		d := p.DB.WithContext(ctx)
 
-		l := p.Log.With("rid", requestID)
+		d.Logger = p.Log.With("rid", requestID)
 
 		ctx = context.WithValue(ctx, DBKey, d)
-		ctx = context.WithValue(ctx, LoggerKey, l)
+		ctx = context.WithValue(ctx, LoggerKey, d.Logger)
 
 		ref := r.Referer()
 		orgRoot := r.Header.Get("Origin") + "/"
