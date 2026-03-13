@@ -69,8 +69,7 @@ func (u *User) BeforeDelete(tx *gorm.DB) error {
 			return err
 		}
 
-		// 子Userを削除
-		return tx.Delete(&User{}, "parent_id = ?", u.ID).Error
+		return tx.Session(&gorm.Session{SkipHooks: true}).Delete(&User{}, "parent_id = ?", u.ID).Error
 	}
 
 	return nil
