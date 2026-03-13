@@ -237,7 +237,9 @@ func deleteWorkReport(ctx context.Context, usr *db.User, id uint) (*model.WorkRe
 		}
 	}
 
-	if err := query.Delete(&dbWorkReport, id).Error; err != nil {
+	if err := d.Transaction(func(tx *gorm.DB) error {
+		return tx.Delete(&dbWorkReport).Error
+	}); err != nil {
 		l.Errorw("Error work_reports", "id", id, "user_id", usr.ID, "error", err)
 		return nil, err
 	}

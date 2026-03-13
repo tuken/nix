@@ -248,7 +248,9 @@ func deleteUser(ctx context.Context, usr *db.User, id uint) (*model.User, error)
 		}
 	}
 
-	if err := query.Delete(&dbUser, id).Error; err != nil {
+	if err := d.Transaction(func(tx *gorm.DB) error {
+		return tx.Delete(&dbUser).Error
+	}); err != nil {
 		l.Errorw("Error users", "id", id, "user_id", usr.ID, "error", err)
 		return nil, err
 	}

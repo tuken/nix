@@ -212,7 +212,9 @@ func deleteField(ctx context.Context, usr *db.User, id uint) (*model.Field, erro
 		}
 	}
 
-	if err := query.Delete(&dbField, id).Error; err != nil {
+	if err := d.Transaction(func(tx *gorm.DB) error {
+		return tx.Delete(&dbField).Error
+	}); err != nil {
 		l.Errorw("Error fields", "id", id, "user_id", usr.ID, "error", err)
 		return nil, err
 	}
