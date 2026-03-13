@@ -57,12 +57,10 @@ func main() {
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"))
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: mainLog})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: mainLog.LogMode(logLevel)})
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
-
-	db.Logger = mainLog.LogMode(logLevel)
 
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 	srv.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
