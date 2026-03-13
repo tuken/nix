@@ -86,7 +86,7 @@ type Field struct {
 }
 
 func (u *Field) Preload(db *gorm.DB) *gorm.DB {
-	return db.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users")
+	return db.Preload("User").Preload("FieldType").Preload("FieldState").Preload("Users").Preload("Users.Parent")
 }
 
 type FieldUser struct {
